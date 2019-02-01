@@ -116,14 +116,13 @@ static int cmd_x(char *args) {
 	paddr_t addr;
 	char *arg = strtok(args, " ");
 	sscanf(arg, "%d", &n);
-	arg = arg + strlen(arg) + 1;
+	arg += strlen(arg) + 1;
 	sscanf(arg, "0x%x", &addr);
 	for (int i = 0; i<n; i++){
 		if(i%4 == 0) printf("0x%x:\t", addr + 4*i);
 		printf("0x%-10x\t",paddr_read(addr + 4*i, 4));
-		if(i%4 == 3) printf("\n");
+		if(i%4 == 3 || i == n-1) printf("\n");
 	}
-	if(n%4 != 0) printf("\n");
 	return 0;
 }
 

@@ -7,10 +7,10 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ
+  TK_NOTYPE = 256, TK_EQ = 257,
+  TK_NUM = 260
 
   /* TODO: Add more token types */
-
 };
 
 static struct rule {
@@ -24,7 +24,13 @@ static struct rule {
 
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
-  {"==", TK_EQ}         // equal
+  {"==", TK_EQ},         // equal
+  {"-", '-'},
+  {"/", '/'},
+  {"\\*", '*'},
+  {"\\(", '('},
+  {"\\)", ')'},
+  {"[0-9]+", TK_NUM}
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -80,8 +86,15 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          default: TODO();
+			case TK_NUM:
+				tokens[nr_token].type = TK_NUM;
+				strncpy(tokens[nr_token].str, substr_start, substr_len > 32? 32: substr_len);
+				break;
+          default:
+				tokens[nr_token].type = rules[1].token_type;
+				strcpy(tokens[nr_token].str,"");
         }
+		nr_token++;
 
         break;
       }
@@ -96,6 +109,66 @@ static bool make_token(char *e) {
   return true;
 }
 
+uint8_t check_parentheses(int p, int q){
+	if(tokens[p].type != '(' || tokens[q].type != ')') return false;
+	int count = 0;
+	for(int i = p+1; i < q; i++){
+		if(tokens[i].type == '(') count++;
+		if(tokens[i].type == ')') count--;
+		if(count < 0) assert(0);
+	}
+	if(count == 0) return true;
+	return false;
+}
+
+int get_dom_op(int p, int q){
+	int op = p;
+	int priority = 1;
+	int parentheses_count = 0;
+	for(int i = p; i < q; i ++){
+		int type = tokens[i].type;
+		if(type == '(' ){
+			parentheses_count++;
+			continue;
+		}
+		if(type == ')'){
+			parentheses_count--;
+			continue;
+		}
+		if(parentheses_count != 0) continue;
+		if((type == '*' || type == '/') && priority == 1){
+			op = i;
+		}else if(type == '+' || type == '-'){
+			op = i;
+			priority = 0;
+		}
+	}
+	return op;
+}
+
+uint32_t eval(int p, int q){
+	if(p > q){
+		assert(0);
+	}else if(p == q){
+		uint32_t result;
+		sscanf(tokens[p].str, "%u", &result);
+		return result;
+	}else if(check_parentheses(p,q) == true){
+		return eval(p + 1, q -1);
+	}else{
+		int op = get_dom_op(p,q);
+		uint32_t val1 = eval(p, op - 1);
+		uint32_t val2 = eval(op + 1, q);
+		switch(tokens[op].type){
+			case '+': return val1 + val2;
+			case '-': return val1 - val2;
+			case '*': return val1 * val2;
+			case '/': return val1 / val2;
+			default: assert(0);
+		}
+	}
+}
+
 uint32_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
@@ -103,7 +176,6 @@ uint32_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
 
-  return 0;
+  return eval(0, nr_token);
 }
