@@ -38,6 +38,12 @@ static int cmd_q(char *args) {
 
 static int cmd_help(char *args);
 
+static int cmd_si(char *args);
+
+static int cmd_info(char *args);
+
+static int cmd_x(char *args);
+
 static struct {
   char *name;
   char *description;
@@ -46,6 +52,9 @@ static struct {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
+  { "si", "single execution", cmd_si },
+  { "info", "print prog status", cmd_info },
+  { "x", "print memory", cmd_x },
 
   /* TODO: Add more commands */
 
@@ -74,6 +83,48 @@ static int cmd_help(char *args) {
     printf("Unknown command '%s'\n", arg);
   }
   return 0;
+}
+
+static int cmd_si(char *args) {
+	uint64_t n;
+	if(args == NULL){
+		n = 1;
+	}else{
+		sscanf(args, "%lu", &n);
+	}
+	cpu_exec(n);
+	return 0;
+}
+
+static int cmd_info(char *args) {
+	if(!strcmp(args, "r")){
+		printf("info of registers:\n");
+		printf("eax:\t0x%-10x\t%d\n",cpu.eax,cpu.eax);
+		printf("ecx:\t0x%-10x\t%d\n",cpu.ecx,cpu.ecx);
+		printf("edx:\t0x%-10x\t%d\n",cpu.edx,cpu.edx);
+		printf("ebx:\t0x%-10x\t%d\n",cpu.ebx,cpu.ebx);
+		printf("esp:\t0x%-10x\t%d\n",cpu.esp,cpu.esp);
+		printf("ebp:\t0x%-10x\t%d\n",cpu.ebp,cpu.ebp);
+		printf("esi:\t0x%-10x\t%d\n",cpu.esi,cpu.esi);
+		printf("eip:\t0x%-10x\t%d\n",cpu.eip,cpu.eip);
+	}
+	return 0;
+}
+
+static int cmd_x(char *args) {
+	int n;
+	paddr_t addr;
+	char *arg = strtok(args, " ");
+	sscanf(arg, "%d", &n);
+	arg = arg + strlen(arg) + 1;
+	sscanf(arg, "0x%x", &addr);
+	for (int i = 0; i<n; i++){
+		if(i%4 == 0) printf("0x%x:\t", addr + 4*i);
+		printf("0x%-10x\t",paddr_read(addr + 4*i, 4));
+		if(i%4 == 3) printf("\n");
+	}
+	if(n%4 != 0) printf("\n");
+	return 0;
 }
 
 void ui_mainloop(int is_batch_mode) {
