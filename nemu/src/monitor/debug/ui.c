@@ -44,6 +44,10 @@ static int cmd_info(char *args);
 
 static int cmd_x(char *args);
 
+static int cmd_w(char *args);
+
+static int cmd_d(char *args);
+
 static struct {
 	char *name;
 	char *description;
@@ -55,6 +59,8 @@ static struct {
 	{ "si", "single execution", cmd_si },
 	{ "info", "print prog status", cmd_info },
 	{ "x", "print memory", cmd_x },
+	{ "w", "set watchpoint", cmd_w},
+	{ "d", "delete watchpoint", cmd_d}
 
 	/* TODO: Add more commands */
 
@@ -107,6 +113,13 @@ static int cmd_info(char *args) {
 		printf("ebp:\t0x%-10x\t%d\n",cpu.ebp,cpu.ebp);
 		printf("esi:\t0x%-10x\t%d\n",cpu.esi,cpu.esi);
 		printf("eip:\t0x%-10x\t%d\n",cpu.eip,cpu.eip);
+	}else if(!strcmp(args, "w")){
+		WP* curr = get_head();
+		printf("watchpoints:\n");
+		while(curr != NULL){
+			printf("NO.%d\texpr:%s\tcurrent value:%u\n", curr->NO, curr->expr, curr->value);
+			curr = curr->next;
+		}
 	}
 	return 0;
 }
@@ -124,6 +137,26 @@ static int cmd_x(char *args) {
 		printf("0x%-10x\t",vaddr_read(addr + 4*i, 4));
 		if(i%4 == 3 || i == n-1) printf("\n");
 	}
+	return 0;
+}
+
+static int cmd_w(char *args) {
+	WP* wp = new_wp();
+	strncpy(wp->expr, args, strlen(args) > 1024 ? 1024: strlen(args));
+	bool success;
+	uint32_t result;
+	result = expr(args, &success);
+	if(success){
+		wp->value = result;
+	}else {assert(0);}
+	return 0;
+}
+
+static int cmd_d(char *args) {
+	int n;
+	sscanf(args, "%d", &n);
+	if(n >= 32) assert(0);
+	free_wp(n);
 	return 0;
 }
 

@@ -188,9 +188,10 @@ uint32_t get_reg(int p){
 	return result;
 }
 
-uint32_t eval(int p, int q){
+uint32_t eval(int p, int q, bool *success){
 	if(p > q){
-		assert(0);
+		*success = false;
+		return 0;
 	}else if(p == q){
 		uint32_t result = 0;
 		switch(tokens[p].type){
@@ -205,14 +206,14 @@ uint32_t eval(int p, int q){
 		}
 		return result;
 	}else if(check_parentheses(p,q) == true){
-		return eval(p + 1, q -1);
+		return eval(p + 1, q -1, success);
 	}else{
 		int op = get_dom_op(p,q);
 		uint32_t val1 = 0;
 		if(op != p){
-			val1 = eval(p, op - 1);
+			val1 = eval(p, op - 1, success);
 		}
-		uint32_t val2 = eval(op + 1, q);
+		uint32_t val2 = eval(op + 1, q, success);
 		switch(tokens[op].type){
 			case '+': return val1 + val2;
 			case '-': return val1 - val2;
@@ -225,12 +226,15 @@ uint32_t eval(int p, int q){
 			case TK_NOT: return !val2;
 			case TK_DEREF: return vaddr_read(val2, 4);
 			case TK_NEG: return -val2;
-			default: assert(0);
+			default:
+						 *success = false;
+						 return 0;
 		}
 	}
 }
 
 uint32_t expr(char *e, bool *success) {
+	*success = true;
 	if (!make_token(e)) {
 		*success = false;
 		return 0;
@@ -245,5 +249,5 @@ uint32_t expr(char *e, bool *success) {
 		}
 	}
 
-	return eval(0, nr_token - 1);
+	return eval(0, nr_token - 1, success);
 }
