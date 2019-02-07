@@ -7,8 +7,8 @@ make_EHelper(test) {
 }
 
 make_EHelper(and) {
-  TODO();
-
+	rtl_and(&t0, &id_dest->val, &id_src->val);
+	rtl_sr(id_dest->reg,id_dest->width, &t0);
   print_asm_template2(and);
 }
 
