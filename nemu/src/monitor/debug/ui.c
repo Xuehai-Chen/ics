@@ -128,7 +128,7 @@ static int cmd_info(char *args) {
 
 static int cmd_x(char *args) {
 	int n;
-	paddr_t addr;
+	vaddr_t addr;
 	char *arg = strtok(args, " ");
 	sscanf(arg, "%d", &n);
 	arg += strlen(arg) + 1;

@@ -100,12 +100,12 @@ static bool make_token(char *e) {
 					case TK_HEX:
 					case TK_REG:
 						tokens[nr_token].type = rules[i].token_type;
+						memset(tokens[nr_token].str, 0, 32);
 						strncpy(tokens[nr_token].str, substr_start, substr_len > 32? 32: substr_len);
 						nr_token++;
 						break;
 					default:
 						tokens[nr_token].type = rules[i].token_type;
-						strcpy(tokens[nr_token].str,"");
 						nr_token++;
 				}
 				break;

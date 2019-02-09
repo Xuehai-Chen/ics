@@ -2,53 +2,89 @@
 
 make_EHelper(add) {
 	rtl_add(&t0, &id_dest->val, &id_src->val);
-	rtl_sr_l(id_dest->reg, &t0);
-	t1 = id_dest->val > id_src->val ? 0:1;
+	operand_write(id_dest, &t0);
+	t1 = t0 < id_src->val;
 	rtl_set_CF(&t1);
 	t1 = t0 == 0;
 	rtl_set_ZF(&t1);
-	t1 = (t0 >> 31) & 0x1;
+	t1 = t0 < 0;
 	rtl_set_SF(&t1);
-	t1 = (((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) >> 31) & 0x1;
+	t1 = ((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
 	rtl_set_OF(&t1);
 	print_asm_template2(add);
 }
 
 make_EHelper(sub) {
 	rtl_sub(&t0, &id_dest->val, &id_src->val);
-	rtl_sr_l(id_dest->reg, &t0);
-	t1 = id_dest->val >= id_src->val ? 0:1;
+	operand_write(id_dest, &t0);
+	t1 = t0 > id_src->val;
 	rtl_set_CF(&t1);
 	t1 = t0 == 0;
 	rtl_set_ZF(&t1);
-	t1 = (t0 >> 31) & 0x1;
+	t1 = t0 < 0;
 	rtl_set_SF(&t1);
-	t1 = (((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) >> 31) & 0x1;
+	t1 = ((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) < 0;
 	rtl_set_OF(&t1);
 	print_asm_template2(sub);
 }
 
 make_EHelper(cmp) {
-	TODO();
+
+	rtl_sub(&t0, &id_dest->val, &id_src->val);
+	t1 = t0 > id_src->val;
+	rtl_set_CF(&t1);
+	t1 = t0 == 0;
+	rtl_set_ZF(&t1);
+	t1 = t0 < 0;
+	rtl_set_SF(&t1);
+	t1 = ((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) < 0;
+	rtl_set_OF(&t1);
 
 	print_asm_template2(cmp);
 }
 
 make_EHelper(inc) {
-	TODO();
-
+	id_src->val = 1;
+	rtl_add(&t0, &id_dest->val, &id_src->val);
+	operand_write(id_dest, &t0);
+	t1 = t0 < id_src->val;
+	rtl_set_CF(&t1);
+	t1 = t0 == 0;
+	rtl_set_ZF(&t1);
+	t1 = t0 < 0;
+	rtl_set_SF(&t1);
+	t1 = ((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
+	rtl_set_OF(&t1);
 	print_asm_template1(inc);
 }
 
 make_EHelper(dec) {
-	TODO();
-
+	id_src->val = -1;
+	rtl_add(&t0, &id_dest->val, &id_src->val);
+	operand_write(id_dest, &t0);
+	t1 = t0 < id_src->val;
+	rtl_set_CF(&t1);
+	t1 = t0 == 0;
+	rtl_set_ZF(&t1);
+	t1 = t0 < 0;
+	rtl_set_SF(&t1);
+	t1 = ((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
+	rtl_set_OF(&t1);
 	print_asm_template1(dec);
 }
 
 make_EHelper(neg) {
-	TODO();
-
+	t1 = 0;
+	rtl_sub(&t0, &t1, &id_dest->val);
+	operand_write(id_dest, &t0);
+	t1 = t0 > id_src->val;
+	rtl_set_CF(&t1);
+	t1 = t0 == 0;
+	rtl_set_ZF(&t1);
+	t1 = t0 < 0;
+	rtl_set_SF(&t1);
+	t1 = ((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) < 0;
+	rtl_set_OF(&t1);
 	print_asm_template1(neg);
 }
 
