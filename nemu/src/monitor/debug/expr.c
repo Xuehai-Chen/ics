@@ -202,7 +202,7 @@ uint32_t eval(int p, int q, bool *success){
 				sscanf(tokens[p].str, "0x%x", &result);
 				break;
 			case TK_REG:
-				result = vaddr_read(get_reg(p), 4);
+				result = get_reg(p);
 		}
 		return result;
 	}else if(check_parentheses(p,q) == true){
