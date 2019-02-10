@@ -64,7 +64,7 @@ bool check_watchpoints(){
 		}else{
 			if(value != curr->value){
 				result = true;
-				printf("watchpoint NO.%d hit:\nexpr: %s\nold value = %-10d\tnew value = %-10d\n", curr->NO, curr->expr, curr->value, value);
+				printf("watchpoint NO.%d hit:\nexpr: %s\nold value = %-10d\t0x%-10x\tnew value = %-10d\t0x%-10x\n", curr->NO, curr->expr, curr->value, curr->value, value, value);
 				curr->value = value;
 			}
 		}
