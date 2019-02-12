@@ -32,6 +32,7 @@ make_EHelper(sub) {
 	rtl_sub(&t2, &id_dest->val, &id_src->val);
 	operand_write(id_dest, &t2);
 	rtl_update_ZFSF(&t2, id_dest->width);
+	//Log("dest:0x%-10x\tsrc:0x%-10x\tt2:0x%-10x", id_dest->val, id_src->val, t2);
 
 	rtl_sltu(&t0, &id_dest->val, &t2);
 	rtl_set_CF(&t0);
@@ -59,6 +60,7 @@ make_EHelper(cmp) {
 	rtl_sext(&t3, &id_src->val, id_src->width);
 	rtl_sub(&t2, &id_dest->val, &t3);
 	rtl_update_ZFSF(&t2, id_dest->width);
+	//Log("dest:0x%-10x\tsrc:0x%-10x\tt2:0x%-10x", id_dest->val, id_src->val, t2);
 
 	rtl_sltu(&t0, &id_dest->val, &t2);
 	rtl_set_CF(&t0);

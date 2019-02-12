@@ -194,7 +194,7 @@ static inline void rtl_update_SF(const rtlreg_t* result, int width) {
 	if(width == 4){
 		cpu.EFLAGS.SF = (int)*result < 0;
 	}else{
-		cpu.EFLAGS.SF = (*result & (~((int)(0x1 << 31) >> (31 - width*8)))) < 0;
+		cpu.EFLAGS.SF = (*result >>  (width*8 - 1)) & 0x1;
 	}
 }
 

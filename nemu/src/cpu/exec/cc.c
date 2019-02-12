@@ -28,7 +28,18 @@ void rtl_setcc(rtlreg_t* dest, uint8_t subcode) {
 		rtl_get_ZF(&t2);
 		*dest = (t3 | t2) & 0x1;
 		break;
+	case CC_NBE:
+		rtl_get_CF(&t3);
+		rtl_get_ZF(&t2);
+		*dest = ~(t3 | t2) & 0x1;
+		break;
     case CC_S:
+		rtl_get_SF(dest);
+		break;
+	case CC_NS:
+		rtl_get_SF(&t3);
+		*dest = t3 == 0;
+		break;
     case CC_L:
 		rtl_get_SF(&t3);
 		rtl_get_OF(&t2);
