@@ -153,7 +153,7 @@ int get_dom_op(int p, int q){
 		}else if(priority > 0 && (type == '*' || type == '/')){
 			op = i;
 			priority = 1;
-		}else if(type == '+' || type == '-'){
+		}else if(type == '+' || type == '-' || type == TK_EQ || type == TK_NEQ){
 			op = i;
 			priority = 0;
 		}
@@ -166,6 +166,9 @@ uint32_t get_reg(int p){
 	char reg[32];
 	sscanf(tokens[p].str, "$%s", reg);
 	int index = 0, width = 4;
+	if(!strcmp("eip", reg)){
+		return cpu.eip;
+	}
 	for (int i=0; i<3; i++){
 		for (int j=0; j<8; j++){
 			if(!strcmp(reg_name(j,1<<i), reg)){

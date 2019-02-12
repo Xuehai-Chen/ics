@@ -16,13 +16,13 @@ make_EHelper(and) {
 	rtl_sext(&t0, &id_src->val, id_src->width);
 	rtl_and(&t1, &id_dest->val, &t0);
 	operand_write(id_dest,&t1);
-	t1 = 0;
-	rtl_set_CF(&t1);
-	rtl_set_OF(&t1);
-	t1 = (int)t0 < 0;
-	rtl_set_SF(&t1);
-	t1 = t0 == 0;
-	rtl_set_ZF(&t1);
+	t2 = 0;
+	rtl_set_CF(&t2);
+	rtl_set_OF(&t2);
+	t2 = (int)t1 < 0;
+	rtl_set_SF(&t2);
+	t2 = t1 == 0;
+	rtl_set_ZF(&t2);
 	print_asm_template2(and);
 }
 

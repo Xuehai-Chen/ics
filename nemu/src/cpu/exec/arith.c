@@ -1,90 +1,169 @@
 #include "cpu/exec.h"
 
 make_EHelper(add) {
-	rtl_add(&t0, &id_dest->val, &id_src->val);
-	operand_write(id_dest, &t0);
-	t1 = t0 < id_src->val;
-	rtl_set_CF(&t1);
-	t1 = t0 == 0;
-	rtl_set_ZF(&t1);
-	t1 = t0 < 0;
-	rtl_set_SF(&t1);
-	t1 = ((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
-	rtl_set_OF(&t1);
+	rtl_add(&t2, &id_dest->val, &id_src->val);
+	//Log("dest:0x%-10x\tsrc:0x%-10x\tt2:0x%-10x", id_dest->val, id_src->val, t2);
+	operand_write(id_dest, &t2);
+	rtl_update_ZFSF(&t2, id_dest->width);
+
+	rtl_sltu(&t0, &t2, &id_dest->val);
+	rtl_set_CF(&t0);
+
+	rtl_xor(&t0, &id_dest->val, &id_src->val);
+	rtl_not(&t0);
+	rtl_xor(&t1, &id_dest->val, &t2);
+	rtl_and(&t0, &t0, &t1);
+	rtl_msb(&t0, &t0, id_dest->width);
+	rtl_set_OF(&t0);
+	/**
+	  t1 = t0 < id_src->val;
+	  rtl_set_CF(&t1);
+	  t1 = t0 == 0;
+	  rtl_set_ZF(&t1);
+	  t1 = (int)t0 < 0;
+	  rtl_set_SF(&t1);
+	  t1 = (int)((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
+	  rtl_set_OF(&t1);
+	  */
 	print_asm_template2(add);
 }
 
 make_EHelper(sub) {
-	rtl_sub(&t0, &id_dest->val, &id_src->val);
-	operand_write(id_dest, &t0);
-	t1 = t0 > id_src->val;
-	rtl_set_CF(&t1);
-	t1 = t0 == 0;
-	rtl_set_ZF(&t1);
-	t1 = t0 < 0;
-	rtl_set_SF(&t1);
-	t1 = ((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) < 0;
-	rtl_set_OF(&t1);
+	rtl_sub(&t2, &id_dest->val, &id_src->val);
+	operand_write(id_dest, &t2);
+	rtl_update_ZFSF(&t2, id_dest->width);
+
+	rtl_sltu(&t0, &id_dest->val, &t2);
+	rtl_set_CF(&t0);
+
+	rtl_xor(&t0, &id_dest->val, &id_src->val);
+	rtl_xor(&t1, &id_dest->val, &t2);
+	rtl_and(&t0, &t0, &t1);
+	rtl_msb(&t0, &t0, id_dest->width);
+	rtl_set_OF(&t0);
+	/**
+	  operand_write(id_dest, &t0);
+	  t1 = t0 > id_dest->val;
+	  rtl_set_CF(&t1);
+	  t1 = t0 == 0;
+	  rtl_set_ZF(&t1);
+	  t1 = (int)t0 < 0;
+	  rtl_set_SF(&t1);
+	  t1 = (int)((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) < 0;
+	  rtl_set_OF(&t1);
+	  */
 	print_asm_template2(sub);
 }
 
 make_EHelper(cmp) {
+	rtl_sext(&t3, &id_src->val, id_src->width);
+	rtl_sub(&t2, &id_dest->val, &t3);
+	rtl_update_ZFSF(&t2, id_dest->width);
 
-	rtl_sub(&t0, &id_dest->val, &id_src->val);
-	t1 = t0 > id_src->val;
-	rtl_set_CF(&t1);
-	t1 = t0 == 0;
-	rtl_set_ZF(&t1);
-	t1 = t0 < 0;
-	rtl_set_SF(&t1);
-	t1 = ((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) < 0;
-	rtl_set_OF(&t1);
+	rtl_sltu(&t0, &id_dest->val, &t2);
+	rtl_set_CF(&t0);
 
+	rtl_xor(&t0, &id_dest->val, &t3);
+	rtl_xor(&t1, &id_dest->val, &t2);
+	rtl_and(&t0, &t0, &t1);
+	rtl_msb(&t0, &t0, id_dest->width);
+	rtl_set_OF(&t0);
+	/**
+	  t1 = t0 > id_dest->val;
+	  rtl_set_CF(&t1);
+	  t1 = (int)t0 < 0;
+	  rtl_set_SF(&t1);
+	  t1 = t0 == 0;
+	  rtl_set_ZF(&t1);
+	  t1 = (int)((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) < 0;
+	  rtl_set_OF(&t1);
+	  */
 	print_asm_template2(cmp);
 }
 
 make_EHelper(inc) {
 	id_src->val = 1;
-	rtl_add(&t0, &id_dest->val, &id_src->val);
-	operand_write(id_dest, &t0);
-	t1 = t0 < id_src->val;
-	rtl_set_CF(&t1);
-	t1 = t0 == 0;
-	rtl_set_ZF(&t1);
-	t1 = t0 < 0;
-	rtl_set_SF(&t1);
-	t1 = ((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
-	rtl_set_OF(&t1);
+	rtl_add(&t2, &id_dest->val, &id_src->val);
+	operand_write(id_dest, &t2);
+	rtl_update_ZFSF(&t2, id_dest->width);
+
+	//rtl_sltu(&t0, &t2, &id_dest->val);
+	//rtl_set_CF(&t0);
+
+	rtl_xor(&t0, &id_dest->val, &id_src->val);
+	rtl_not(&t0);
+	rtl_xor(&t1, &id_dest->val, &t2);
+	rtl_and(&t0, &t0, &t1);
+	rtl_msb(&t0, &t0, id_dest->width);
+	rtl_set_OF(&t0);
+	/**
+	  operand_write(id_dest, &t0);
+	  t1 = t0 < id_src->val;
+	  rtl_set_CF(&t1);
+	  t1 = t0 == 0;
+	  rtl_set_ZF(&t1);
+	  t1 = (int)t0 < 0;
+	  rtl_set_SF(&t1);
+	  t1 = (int)((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
+	  rtl_set_OF(&t1);
+	  */
 	print_asm_template1(inc);
 }
 
 make_EHelper(dec) {
-	id_src->val = -1;
-	rtl_add(&t0, &id_dest->val, &id_src->val);
-	operand_write(id_dest, &t0);
-	t1 = t0 < id_src->val;
-	rtl_set_CF(&t1);
-	t1 = t0 == 0;
-	rtl_set_ZF(&t1);
-	t1 = t0 < 0;
-	rtl_set_SF(&t1);
-	t1 = ((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
-	rtl_set_OF(&t1);
+	id_src->val = 1;
+	rtl_sub(&t2, &id_dest->val, &id_src->val);
+	operand_write(id_dest, &t2);
+	rtl_update_ZFSF(&t2, id_dest->width);
+	//Log("dest:0x%-10x\tsrc:0x%-10x\tt2:%-10x",id_dest->val, id_src->val, t2);
+
+	//rtl_sltu(&t0, &id_dest->val, &t2);
+	//rtl_set_CF(&t0);
+
+	rtl_xor(&t0, &id_dest->val, &id_src->val);
+	rtl_xor(&t1, &id_dest->val, &t2);
+	rtl_and(&t0, &t0, &t1);
+	rtl_msb(&t0, &t0, id_dest->width);
+	rtl_set_OF(&t0);
+	/**
+	  operand_write(id_dest, &t0);
+	  t1 = t0 < id_dest->val;
+	  rtl_set_CF(&t1);
+	  t1 = t0 == 0;
+	  rtl_set_ZF(&t1);
+	  t1 = (int)t0 < 0;
+	  rtl_set_SF(&t1);
+	  t1 = (int)((id_src->val ^ t0) & (!id_src->val ^ id_dest->val)) < 0;
+	  rtl_set_OF(&t1);
+	  */
 	print_asm_template1(dec);
 }
 
 make_EHelper(neg) {
 	t1 = 0;
-	rtl_sub(&t0, &t1, &id_dest->val);
-	operand_write(id_dest, &t0);
-	t1 = t0 > id_src->val;
-	rtl_set_CF(&t1);
-	t1 = t0 == 0;
-	rtl_set_ZF(&t1);
-	t1 = t0 < 0;
-	rtl_set_SF(&t1);
-	t1 = ((!id_src->val ^ t0) & (id_src->val ^ id_dest->val)) < 0;
-	rtl_set_OF(&t1);
+	rtl_sub(&t2, &t1, &id_dest->val);
+	operand_write(id_dest, &t2);
+	rtl_update_ZFSF(&t2, id_dest->width);
+
+	rtl_sltu(&t0, &t1, &t2);
+	rtl_set_CF(&t0);
+
+	rtl_xor(&t0, &id_dest->val, 0);
+	rtl_xor(&t1, &id_dest->val, &t2);
+	rtl_and(&t0, &t0, &t1);
+	rtl_msb(&t0, &t0, id_dest->width);
+	rtl_set_OF(&t0);
+	/**
+	  operand_write(id_dest, &t0);
+	  t1 = t0 > id_dest->val;
+	  rtl_set_CF(&t1);
+	  t1 = t0 == 0;
+	  rtl_set_ZF(&t1);
+	  t1 = (int)t0 < 0;
+	  rtl_set_SF(&t1);
+	  t1 = (int)((!0 ^ t0) & (0 ^ id_dest->val)) < 0;
+	  rtl_set_OF(&t1);
+	  */
 	print_asm_template1(neg);
 }
 
@@ -140,15 +219,25 @@ make_EHelper(mul) {
 	switch (id_dest->width) {
 		case 1:
 			rtl_sr_w(R_AX, &t1);
+			rtl_andi(&t3, &t1, 0xFF00);
+			t3 = t3 != 0;
+			rtl_set_CF(&t3);
+			rtl_set_OF(&t3);
 			break;
 		case 2:
 			rtl_sr_w(R_AX, &t1);
 			rtl_shri(&t1, &t1, 16);
 			rtl_sr_w(R_DX, &t1);
+			t1 = t1 != 0;
+			rtl_set_CF(&t1);
+			rtl_set_OF(&t1);
 			break;
 		case 4:
 			rtl_sr_l(R_EDX, &t0);
 			rtl_sr_l(R_EAX, &t1);
+			t1 = t1 != 0;
+			rtl_set_CF(&t1);
+			rtl_set_OF(&t1);
 			break;
 		default: assert(0);
 	}
@@ -186,8 +275,18 @@ make_EHelper(imul2) {
 	rtl_sext(&id_dest->val, &id_dest->val, id_dest->width);
 
 	rtl_imul(&t0, &t1, &id_dest->val, &id_src->val);
+	//Log("dest:0x%-10x\tsrc:0x%-10x", id_dest->val, id_src->val);
 	operand_write(id_dest, &t1);
-
+	t3 = t0 == -1 || t0 == 0;
+	/**Log("t3:0x%x\tt0:0x%x\tt1:0x%x", t3, t0, t1);
+	if(t3 && !((t0 ^ t1) & 0x80000000)){
+		t3 = 0;
+	}else{
+		t3 = 1;
+	}
+	rtl_set_CF(&t3);
+	rtl_set_OF(&t3);
+	*/
 	print_asm_template2(imul);
 }
 
@@ -238,7 +337,6 @@ make_EHelper(div) {
 
 make_EHelper(idiv) {
 	rtl_sext(&id_dest->val, &id_dest->val, id_dest->width);
-
 	switch (id_dest->width) {
 		case 1:
 			rtl_lr_w(&t0, R_AX);
@@ -262,7 +360,6 @@ make_EHelper(idiv) {
 	}
 
 	rtl_idiv(&t2, &t3, &t1, &t0, &id_dest->val);
-
 	rtl_sr(R_EAX, id_dest->width, &t2);
 	if (id_dest->width == 1) {
 		rtl_sr_b(R_AH, &t3);
