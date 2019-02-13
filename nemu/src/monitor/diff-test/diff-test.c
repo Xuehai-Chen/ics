@@ -158,11 +158,11 @@ void difftest_step(uint32_t eip) {
 	}
 
 	if(cpu.eip != r.eip) diff = true;
-	if(cpu.EFLAGS.CF != (r.eflags & 0x1)) diff = true;
-	if(cpu.EFLAGS.ZF != ((r.eflags >> 6) & 0x1)) diff = true;
-	if(cpu.EFLAGS.SF != ((r.eflags >> 7) & 0x1)) diff = true;
-	if(cpu.EFLAGS.IF != ((r.eflags >> 9) & 0x1)) diff = true;
-	if(cpu.EFLAGS.OF != ((r.eflags >> 11) & 0x1)) diff = true;
+	//if(cpu.EFLAGS.CF != (r.eflags & 0x1)) diff = true;
+	//if(cpu.EFLAGS.ZF != ((r.eflags >> 6) & 0x1)) diff = true;
+	//if(cpu.EFLAGS.SF != ((r.eflags >> 7) & 0x1)) diff = true;
+	//if(cpu.EFLAGS.IF != ((r.eflags >> 9) & 0x1)) diff = true;
+	//if(cpu.EFLAGS.OF != ((r.eflags >> 11) & 0x1)) diff = true;
 	if (diff) {
 		for(int i = 0; i < 8; i++){
 			Log("reg %s:0x%-10x\t0x%-10x", reg_name(i, 4), cpu.gpr[i]._32, r.array[i]);

@@ -1,5 +1,7 @@
 #include "cpu/exec.h"
 
+void diff_test_skip_qemu();
+
 make_EHelper(add) {
 	rtl_add(&t2, &id_dest->val, &id_src->val);
 	//Log("dest:0x%-10x\tsrc:0x%-10x\tt2:0x%-10x", id_dest->val, id_src->val, t2);
@@ -144,13 +146,14 @@ make_EHelper(dec) {
 make_EHelper(neg) {
 	t1 = 0;
 	rtl_sub(&t2, &t1, &id_dest->val);
+	//Log("t2:0x%-10x\tt1:0x%-10x\tdest:0x%-10x", t2, t1, id_dest->val);
 	operand_write(id_dest, &t2);
 	rtl_update_ZFSF(&t2, id_dest->width);
 
 	rtl_sltu(&t0, &t1, &t2);
 	rtl_set_CF(&t0);
 
-	rtl_xor(&t0, &id_dest->val, 0);
+	rtl_xor(&t0, &id_dest->val, &t1);
 	rtl_xor(&t1, &id_dest->val, &t2);
 	rtl_and(&t0, &t0, &t1);
 	rtl_msb(&t0, &t0, id_dest->width);
@@ -267,6 +270,9 @@ make_EHelper(imul1) {
 			break;
 		default: assert(0);
 	}
+#ifdef DIFF_TEST
+	//diff_test_skip_qemu();
+#endif
 
 	print_asm_template1(imul);
 }

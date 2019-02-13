@@ -14,6 +14,7 @@ void serial_io_handler(ioaddr_t addr, int len, bool is_write) {
     assert(len == 1);
     if (addr == SERIAL_PORT + CH_OFFSET) {
       char c = serial_port_base[CH_OFFSET];
+	  //Log("serial_port:0x%x\tchar:%u",SERIAL_PORT, c);
       /* We bind the serial port with the host stdout in NEMU. */
       putc(c, stdout);
       if (c == '\n') {

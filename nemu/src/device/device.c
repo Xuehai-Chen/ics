@@ -56,6 +56,7 @@ void device_update() {
                      // If a key was pressed
       case SDL_KEYDOWN:
       case SDL_KEYUP: {
+						  //Log("event.type:%d\tkey:0x%-10x\tis_keydown:%d",event.type,event.key.keysym.scancode,event.key.type==SDL_KEYDOWN);
                         if (event.key.repeat == 0) {
                           uint8_t k = event.key.keysym.scancode;
                           bool is_keydown = (event.key.type == SDL_KEYDOWN);

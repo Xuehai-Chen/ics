@@ -14,6 +14,8 @@ make_EHelper(operand_size);
 make_EHelper(inv);
 make_EHelper(nemu_trap);
 make_EHelper(nop);
+make_EHelper(in);
+make_EHelper(out);
 
 make_EHelper(call);
 make_EHelper(ret);
@@ -29,6 +31,7 @@ make_EHelper(adc);
 make_EHelper(cmp);
 make_EHelper(dec);
 make_EHelper(inc);
+make_EHelper(neg);
 make_EHelper(mul);
 make_EHelper(imul1);
 make_EHelper(imul2);
