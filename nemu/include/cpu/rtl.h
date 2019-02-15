@@ -203,4 +203,9 @@ static inline void rtl_update_ZFSF(const rtlreg_t* result, int width) {
 	rtl_update_SF(result, width);
 }
 
+static inline void rtl_set_idtr(const rtlreg_t* base, const rtlreg_t* limit){
+	cpu.idtr.base = *base;
+	cpu.idtr.limit = *limit & 0xffff;
+}
+
 #endif

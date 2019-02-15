@@ -45,6 +45,11 @@ typedef union {
 		}EFLAGS;
 
 		vaddr_t eip;
+		rtlreg_t cs;
+		struct{
+			uint32_t base;
+			uint16_t limit;
+		}idtr;
 	};
 
 } CPU_state;
