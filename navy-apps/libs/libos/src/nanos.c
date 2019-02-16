@@ -5,11 +5,15 @@
 #include <assert.h>
 #include <time.h>
 #include "syscall.h"
+#include <stdio.h>
 
 // TODO: discuss with syscall interface
 #ifndef __ISA_NATIVE__
 
 // FIXME: this is temporary
+
+extern char _end;
+static uint32_t brk = &_end;
 
 int _syscall_(int type, uintptr_t a0, uintptr_t a1, uintptr_t a2){
   int ret = -1;
@@ -22,27 +26,39 @@ void _exit(int status) {
 }
 
 int _open(const char *path, int flags, mode_t mode) {
-  _exit(SYS_open);
+  _syscall_(SYS_open, (uintptr_t)path, flags, mode);
 }
 
 int _write(int fd, void *buf, size_t count){
-  _exit(SYS_write);
+  _syscall_(SYS_write, fd, (uintptr_t)buf, count);
 }
 
 void *_sbrk(intptr_t increment){
+	uint32_t old_brk = brk;
+	int ret = _syscall_(SYS_brk, brk + increment, 0, 0);
+
+	/**
+	char *buf;
+	sprintf(buf, "sbrk end:0x%-10x\tincrement:%d\tret:%d\n", brk, increment, ret);
+	_write(1, buf, 100);
+	*/
+	if(ret == 0){
+		brk += increment;
+		return (void *)old_brk;
+	}
   return (void *)-1;
 }
 
 int _read(int fd, void *buf, size_t count) {
-  _exit(SYS_read);
+  _syscall_(SYS_read, fd, (uintptr_t)buf, count);
 }
 
 int _close(int fd) {
-  _exit(SYS_close);
+  _syscall_(SYS_close, fd, 0, 0);
 }
 
 off_t _lseek(int fd, off_t offset, int whence) {
-  _exit(SYS_lseek);
+  _syscall_(SYS_lseek, fd, offset, whence);
 }
 
 // The code below is not used by Nanos-lite.

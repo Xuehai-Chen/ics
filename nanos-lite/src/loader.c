@@ -1,13 +1,12 @@
 #include "common.h"
+#include "fs.h"
 
 #define DEFAULT_ENTRY ((void *)0x4000000)
 
-size_t get_ramdisk_size();
-
-void ramdisk_read(void*, off_t, size_t);
-
 uintptr_t loader(_Protect *as, const char *filename) {
-	size_t ramdisk_size = get_ramdisk_size();
-	ramdisk_read(DEFAULT_ENTRY, 0, ramdisk_size);
-  return (uintptr_t)DEFAULT_ENTRY;
+	int fd = fs_open(filename, 0, 0);
+	size_t sz = fs_filesz(fd);
+	fs_lseek(fd, 0, SEEK_SET);
+	fs_read(fd, DEFAULT_ENTRY, sz);
+	return (uintptr_t)DEFAULT_ENTRY;
 }
