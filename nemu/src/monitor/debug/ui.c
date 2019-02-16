@@ -114,7 +114,7 @@ static int cmd_info(char *args) {
 		printf("esi:\t0x%-10x\t%d\n",cpu.esi,cpu.esi);
 		printf("edi:\t0x%-10x\t%d\n",cpu.edi,cpu.edi);
 		printf("eip:\t0x%-10x\t%d\n",cpu.eip,cpu.eip);
-		printf("EFLAGS:\t0x%-10x\t%d\n",cpu.EFLAGS.val,cpu.EFLAGS.val);
+		printf("eflags:\t0x%-10x\t%d\n",cpu.eflags.val,cpu.eflags.val);
 	}else if(!strcmp(args, "w")){
 		WP* curr = get_head();
 		printf("watchpoints:\n");

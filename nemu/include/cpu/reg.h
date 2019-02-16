@@ -42,7 +42,7 @@ typedef union {
 				uint32_t x4: 20;
 			};
 			uint32_t val;
-		}EFLAGS;
+		}eflags;
 
 		vaddr_t eip;
 		rtlreg_t cs;

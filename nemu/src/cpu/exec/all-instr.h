@@ -8,6 +8,8 @@ make_EHelper(leave);
 make_EHelper(push);
 make_EHelper(pop);
 make_EHelper(cltd);
+make_EHelper(pusha);
+make_EHelper(popa);
 
 make_EHelper(operand_size);
 
@@ -18,6 +20,7 @@ make_EHelper(in);
 make_EHelper(out);
 make_EHelper(lidt);
 make_EHelper(int);
+make_EHelper(iret);
 
 make_EHelper(call);
 make_EHelper(ret);
