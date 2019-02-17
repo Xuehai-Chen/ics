@@ -49,6 +49,7 @@ int NDL_CloseDisplay() {
 }
 
 int NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
+	//printf("draw_rect params: %d %d %d %d %d\n", x, y, w, h, has_nwm);
   if (has_nwm) {
     for (int i = 0; i < h; i ++) {
       printf("\033[X%d;%d", x, y + i);
@@ -72,6 +73,7 @@ int NDL_Render() {
     fflush(stdout);
   } else {
     for (int i = 0; i < canvas_h; i ++) {
+		//printf("seek params: %d %d %d %d\n", i, pad_y, screen_w, pad_x);
       fseek(fbdev, ((i + pad_y) * screen_w + pad_x) * sizeof(uint32_t), SEEK_SET);
       fwrite(&canvas[i * canvas_w], sizeof(uint32_t), canvas_w, fbdev);
     }
@@ -131,6 +133,7 @@ static void get_display_info() {
   screen_w = screen_h = 0;
   char buf[128], key[128], value[128], *delim;
   while (fgets(buf, 128, dispinfo)) {
+	//printf("get display info buf: %s", buf);
     *(delim = strchr(buf, ':')) = '\0';
     sscanf(buf, "%s", key);
     sscanf(delim + 1, "%s", value);
@@ -138,6 +141,7 @@ static void get_display_info() {
     if (strcmp(key, "HEIGHT") == 0) sscanf(value, "%d", &screen_h);
   }
   fclose(dispinfo);
+  //printf("\n\nscreen_w:%d\t screen_h:%d\n", screen_w, screen_h);
   assert(screen_w > 0 && screen_h > 0);
 }
 

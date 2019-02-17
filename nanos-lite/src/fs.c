@@ -24,6 +24,10 @@ static Finfo file_table[] __attribute__((used)) = {
 
 void ramdisk_read(void*, off_t, size_t);
 void ramdisk_write(const void*, off_t, size_t);
+void dispinfo_read(void*, off_t, size_t);
+void fb_write(const void*, off_t, size_t);
+size_t events_read(void*, size_t);
+extern _Screen _screen;
 
 size_t fs_filesz(int fd){
 	return file_table[fd].size;
@@ -42,10 +46,17 @@ int fs_open(const char *pathname, int flags, int mode){
 
 ssize_t fs_read(int fd, void *buf, size_t len){
 	assert(fd >= 0 && fd < NR_FILES);
-	if(fd < 3) return 0;
+	if(fd < 4) return 0;
+	if(fd == FD_EVENTS) return events_read(buf, len);
 	Finfo *fp = &file_table[fd];
 	len = fp->open_offset + len > fp->size ? fp->size - fp->open_offset : len;
 	//Log("fd:%d, open_offset:%d, disk_offset:%d", fd, fp->open_offset, fp->disk_offset);
+	if(fd == FD_DISPINFO) {
+		dispinfo_read(buf, fp->open_offset, len);
+		fp->open_offset += strlen(buf);
+		//Log("buf:%s, size:%d\n", buf, strlen(buf));
+		return strlen(buf);
+	}
 	ramdisk_read(buf, fp->disk_offset + fp->open_offset, len);
 	fp->open_offset += len;
 	return len;
@@ -53,11 +64,17 @@ ssize_t fs_read(int fd, void *buf, size_t len){
 
 ssize_t fs_write(int fd, const void *buf, size_t len){
 	assert(fd >= 0 && fd < NR_FILES);
-	
-	if(fd == 1 || fd == 2){
+	//printf("fd:%d, len:%d", fd,  len);
+	if(fd == FD_STDOUT || fd == FD_STDERR){
 		for(int i = 0; i < len; i++){
 			_putc(*((char*)buf + i));
 		}
+		return len;
+	}else if(fd == FD_FB){
+		Finfo *fp = &file_table[fd];
+		len = fp->open_offset + len > fp->size ? fp->size - fp->open_offset : len;
+		fb_write(buf, fp->open_offset, len);
+		fp->open_offset += len;
 		return len;
 	}
 	Finfo *fp= &file_table[fd];
@@ -101,4 +118,6 @@ int fs_close(int fd){
 
 void init_fs() {
 	// TODO: initialize the size of /dev/fb
+	Finfo *fp = &file_table[FD_FB];
+	fp->size = _screen.width * _screen.height * sizeof(uint32_t);
 }
