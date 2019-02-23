@@ -19,10 +19,12 @@ enum{TYPE_WRITE, TYPE_READ};
 /* Memory accessing interfaces */
 
 paddr_t page_translate(paddr_t addr, int type){
-	uint32_t cr3 = rtl_get_cr3();
-	uint32_t pte_idx = paddr_read((paddr_t)((void *)cr3 + ((addr > 22) & 0x3ff)), 4);
+	if(cpu.cr0.PG == 0) return addr;
+	uint32_t cr3 = cpu.cr3;
+	Log("cr3:0x%-10x", cr3);
+	uint32_t pte_idx = paddr_read((paddr_t)(cr3 + ((addr > 22) & 0x3ff) * sizeof(void*)), 4);
 	assert(pte_idx &0x1);
-	pte_addr = (paddr_t)((void*)pte_idx + ((addr > 12) & 0x3ff));
+	uint32_t pte_addr = (paddr_t)(pte_idx + ((addr > 12) & 0x3ff) * sizeof(void*));
 	uint32_t pte = paddr_read(pte_addr, 4);
 	assert(pte & 0x1);
 	switch(type){
@@ -57,11 +59,11 @@ void paddr_write(paddr_t addr, int len, uint32_t data) {
 }
 
 uint32_t vaddr_read(vaddr_t addr, int len) {
-	if((((void*)addr + len)^addr) & ~0x3ff) assert(0);
+	//if(((addr + len * sizeof(void*))^addr) & ~0x3ff) assert(0);
 	return paddr_read(page_translate(addr, TYPE_READ), len);
 }
 
 void vaddr_write(vaddr_t addr, int len, uint32_t data) {
-	if((((void*)addr + len)^addr) & ~0x3ff) assert(0);
+	//if(((addr + len * sizeof(void*))^addr) & ~0x3ff) assert(0);
 	paddr_write(page_translate(addr, TYPE_WRITE), len, data);
 }

@@ -216,4 +216,20 @@ static inline void rtl_set_cs(const rtlreg_t* val){
 	cpu.cs = *val;
 }
 
+static inline void rtl_get_cr0(rtlreg_t* val){
+	*val = cpu.cr0.val;
+}
+
+static inline void rtl_set_cr0(const rtlreg_t val){
+	cpu.cr0.val = val;
+}
+
+static inline void rtl_get_cr3(rtlreg_t* val){
+	*val = cpu.cr3;
+}
+
+static inline void rtl_set_cr3(const rtlreg_t val){
+	cpu.cr3 = val;
+}
+
 #endif

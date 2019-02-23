@@ -54,7 +54,7 @@ typedef union {
 			struct{
 				uint32_t dont_care: 31;
 				uint8_t PG:1;
-			}
+			};
 			uint32_t val;
 		}cr0;
 		rtlreg_t cr3;
