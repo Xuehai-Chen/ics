@@ -16,7 +16,22 @@ void free_page(void *p) {
 
 /* The brk() system call handler. */
 int mm_brk(uint32_t new_brk) {
-  return 0;
+	if(current->cur_brk == 0){
+		current->cur_brk = new_brk;
+		current->max_brk = (new_brk & 0xfff) ? ((new_brk & ~0xfff) + PGSIZE) : new_brk;
+	}else{
+		if(new_brk > current->max_brk){
+			//Log("new_brk:%p\t current->max_brk:%p", new_brk, current->max_brk);
+			int count = (new_brk + PGSIZE - 1 - current->max_brk) / PGSIZE;
+			for(int i = 0; i < count; i++){
+				void *pa = new_page();
+				_map(&current->as, (void*)(current->max_brk + i*PGSIZE), pa);
+			}
+			current->max_brk = (new_brk & 0xfff) ? ((new_brk & ~0xfff) + PGSIZE) : new_brk;
+		}
+		current->cur_brk = new_brk;
+	}
+	return 0;
 }
 
 void init_mm() {

@@ -2,6 +2,8 @@
 #include "syscall.h"
 #include "fs.h"
 
+int mm_brk(uint32_t);
+
 _RegSet* do_syscall(_RegSet *r) {
 	uintptr_t a[4];
 	a[0] = SYSCALL_ARG1(r);
@@ -30,7 +32,7 @@ _RegSet* do_syscall(_RegSet *r) {
 			SYSCALL_ARG1(r) = fs_close(SYSCALL_ARG2(r));
 			break;
 		case SYS_brk:
-			SYSCALL_ARG1(r) = 0;
+			SYSCALL_ARG1(r) = mm_brk(SYSCALL_ARG2(r));
 			break;
 		default: panic("Unhandled syscall ID = %d", a[0]);
 	}

@@ -1,4 +1,5 @@
 #include <x86.h>
+#include <stdio.h>
 
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
 
@@ -52,6 +53,7 @@ void _protect(_Protect *p) {
   // map kernel space
   for (int i = 0; i < NR_PDE; i ++) {
     updir[i] = kpdirs[i];
+	//printf("user space dir entry: %p\n", updir[i]);
   }
 
   p->area.start = (void*)0x8000000;
@@ -66,6 +68,15 @@ void _switch(_Protect *p) {
 }
 
 void _map(_Protect *p, void *va, void *pa) {
+	PDE *updir = p->ptr;
+	updir += PDX(va);
+	if(!(*updir & PTE_P)){
+		*updir = (PDE)((uintptr_t)(palloc_f()) | PTE_P);
+	}
+	PTE *uppte = (PTE*)(*updir & ~0xfff);
+	uppte += PTX(va);
+	*uppte = (uintptr_t)pa | PTE_P;
+	//printf("va:%p\tpdir:%p\tuppte:%p\tpa:%p\n", va, updir, uppte, pa);
 }
 
 void _unmap(_Protect *p, void *va) {
