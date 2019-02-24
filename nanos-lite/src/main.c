@@ -31,7 +31,8 @@ int main() {
   init_fs();
 
   uint32_t entry = loader(NULL, "/bin/pal");
-  ((void (*)(void))entry)();
+  void (*entryPtr)() = (void *)(intptr_t)entry;
+  (*entryPtr)();
 
   panic("Should not reach here");
 }

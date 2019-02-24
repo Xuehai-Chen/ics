@@ -344,10 +344,10 @@ void operand_write(Operand *op, rtlreg_t* src) {
 	else if (op->type == OP_TYPE_CTRL_REG) {
 		switch(op->reg){
 			case 0:
-				rtl_set_cr0(op->val);
+				rtl_set_cr0(*src);
 				break;
 			case 3:
-				rtl_set_cr3(op->val);
+				rtl_set_cr3(*src);
 				break;
 			default:
 				assert(0);

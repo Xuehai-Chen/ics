@@ -21,10 +21,10 @@ enum{TYPE_WRITE, TYPE_READ};
 paddr_t page_translate(paddr_t addr, int type){
 	if(cpu.cr0.PG == 0) return addr;
 	uint32_t cr3 = cpu.cr3;
-	Log("cr3:0x%-10x", cr3);
-	uint32_t pte_idx = paddr_read((paddr_t)(cr3 + ((addr > 22) & 0x3ff) * sizeof(void*)), 4);
+	//Log("cr3:0x%-10x", cr3);
+	uint32_t pte_idx = paddr_read((paddr_t)(cr3 + ((addr >> 22) & 0x3ff) * 4), 4);
 	assert(pte_idx &0x1);
-	uint32_t pte_addr = (paddr_t)(pte_idx + ((addr > 12) & 0x3ff) * sizeof(void*));
+	uint32_t pte_addr = (paddr_t)((pte_idx & ~0xfff) + ((addr >> 12) & 0x3ff) * 4);
 	uint32_t pte = paddr_read(pte_addr, 4);
 	assert(pte & 0x1);
 	switch(type){
