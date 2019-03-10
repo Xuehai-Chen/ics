@@ -14,29 +14,61 @@ enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
  * For more details about the register encoding scheme, see i386 manual.
  */
 
-typedef struct {
-  struct {
-    uint32_t _32;
-    uint16_t _16;
-    uint8_t _8[2];
-  } gpr[8];
+typedef union {
+	union {
+		uint32_t _32;
+		uint16_t _16;
+		uint8_t _8[2];
+	} gpr[8];
 
-  /* Do NOT change the order of the GPRs' definitions. */
+	/* Do NOT change the order of the GPRs' definitions. */
 
-  /* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
-   * in PA2 able to directly access these registers.
-   */
-  rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
+	/* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
+	 * 	 * in PA2 able to directly access these registers.
+	 * 	 	 */
+	struct{
+		rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
 
-  vaddr_t eip;
+		vaddr_t eip;
+		union{
+			struct{
+				uint8_t CF: 1;
+				uint8_t x1: 5;
+				uint8_t ZF: 1;
+				uint8_t SF: 1;
+				uint8_t x2: 1;
+				uint8_t IF: 1;
+				uint8_t x3: 1;
+				uint8_t OF: 1;
+				uint32_t x4: 20;
+			};
+			uint32_t val;
+		}eflags;
+
+		rtlreg_t cs;
+		struct{
+			uint32_t base;
+			uint16_t limit;
+		}idtr;
+
+		union{
+			struct{
+				uint32_t dont_care: 31;
+				uint8_t PG:1;
+			};
+			uint32_t val;
+		}cr0;
+
+		rtlreg_t cr3;
+	};
 
 } CPU_state;
 
 extern CPU_state cpu;
 
 static inline int check_reg_index(int index) {
-  assert(index >= 0 && index < 8);
-  return index;
+	assert(index >= 0 && index < 8);
+	return index;
 }
 
 #define reg_l(index) (cpu.gpr[check_reg_index(index)]._32)
@@ -48,13 +80,13 @@ extern const char* regsw[];
 extern const char* regsb[];
 
 static inline const char* reg_name(int index, int width) {
-  assert(index >= 0 && index < 8);
-  switch (width) {
-    case 4: return regsl[index];
-    case 1: return regsb[index];
-    case 2: return regsw[index];
-    default: assert(0);
-  }
+	assert(index >= 0 && index < 8);
+	switch (width) {
+		case 4: return regsl[index];
+		case 1: return regsb[index];
+		case 2: return regsw[index];
+		default: assert(0);
+	}
 }
 
 #endif
