@@ -38,7 +38,12 @@ void video_init() {
   texture = SDL_CreateTexture(renderer,
     SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, W, H);
   memset(fb, 0, W * H * sizeof(uint32_t));
-  SDL_AddTimer(1000 / FPS, texture_sync, NULL);
+  int err = SDL_AddTimer(1000 / FPS, texture_sync, NULL);
+  printf("sdl err:%d", err);
+  if(!err){
+	  printf("\t%s", SDL_GetError());
+  }
+  printf("\n");
 }
 
 size_t video_read(uintptr_t reg, void *buf, size_t size) {
@@ -68,6 +73,7 @@ size_t video_write(uintptr_t reg, void *buf, size_t size) {
       if (ctl->sync) {
         // do nothing, texture_sync() is called by SDL_timer
       }
+	  //texture_sync(0, NULL);
       return size;
     }
   }

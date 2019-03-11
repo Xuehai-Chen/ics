@@ -10,9 +10,16 @@ uint32_t pio_read_b(ioaddr_t);
 void pio_write_l(ioaddr_t, uint32_t);
 void pio_write_w(ioaddr_t, uint32_t);
 void pio_write_b(ioaddr_t, uint32_t);
+void raise_intr(uint8_t, vaddr_t);
 
 make_EHelper(lidt) {
-	TODO();
+	t0 = vaddr_read(id_dest->addr + 2, 2);
+	rtl_andi(&t0, &t0, 0xffff);
+	t1 = vaddr_read(id_dest->addr + 4, 2);
+	rtl_shli(&t1, &t1, 16);
+	rtl_add(&t0, &t0, &t1);
+	t1 = vaddr_read(id_dest->addr, 2);
+	rtl_set_idtr(&t0, &t1);
 
 	print_asm_template1(lidt);
 }
@@ -34,7 +41,7 @@ make_EHelper(mov_cr2r) {
 }
 
 make_EHelper(int) {
-	TODO();
+	raise_intr(id_dest->val, decoding.seq_eip);
 
 	print_asm("int %s", id_dest->str);
 

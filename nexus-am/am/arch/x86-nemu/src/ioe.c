@@ -28,8 +28,8 @@ size_t input_read(uintptr_t reg, void *buf, size_t size);
 
 
 static _Device n86_dev[] = {
-  {_DEV_TIMER,   "NEMU Timer", timer_read, no_write},
   {_DEV_INPUT,   "NEMU Keyboard Controller", input_read, no_write},
+  {_DEV_TIMER,   "NEMU Timer", timer_read, no_write},
   {_DEV_VIDEO,   "NEMU VGA Controller", video_read, video_write},
 };
 

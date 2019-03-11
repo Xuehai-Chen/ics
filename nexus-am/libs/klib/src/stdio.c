@@ -41,7 +41,15 @@ const char *src = fmt;
 		src++;
 		//_putc(*src);
 		int idx = 1000000000;
+		/**
+		while(*src <= '9' && *src >= '0') {
+			_putc(*src);
+			//_putc('\n');
+			src++;
+		}
+		*/
 		switch(*(src++)){
+			case 'c':
 			case 's':
 				s = va_arg(ap, char*);
 				strcpy(buf, s);
@@ -82,6 +90,9 @@ int sprintf(char *out, const char *fmt, ...) {
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
+	_putc('\n');
+	_putc('!');
+	_putc('\n');
 	return 0;
 }
 

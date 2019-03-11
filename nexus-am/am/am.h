@@ -6,6 +6,7 @@
 #ifndef __AM_H__
 #define __AM_H__
 
+#include <sys/types.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <arch.h>
