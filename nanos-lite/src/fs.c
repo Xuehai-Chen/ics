@@ -51,7 +51,7 @@ size_t fs_filesz(int fd){
 int fs_open(const char *pathname, int flags, int mode){
 	for(int i = 0; i < NR_FILES; i++){
 		if(!strcmp(pathname, file_table[i].name)){
-			Log("pathname:%s, file_table[i].name:%s, i:%d", pathname, file_table[i].name, i);
+			//Log("pathname:%s, file_table[i].name:%s, i:%d", pathname, file_table[i].name, i);
 			return i;
 		}
 	}
@@ -97,7 +97,7 @@ ssize_t fs_write(int fd, const void *buf, size_t len){
 
 off_t fs_lseek(int fd, off_t offset, int whence){
 	assert(fd >= 0 && fd < NR_FILES);
-	Log("fd:%d, offset:%d, whence:%d", fd, offset, whence);
+	//Log("fd:%d, offset:%d, whence:%d", fd, offset, whence);
 	if(fd < 3) return 0;
 	Finfo *fp = &file_table[fd];
 	switch(whence){
@@ -119,7 +119,7 @@ off_t fs_lseek(int fd, off_t offset, int whence){
 		default:
 			assert(0);
 	}
-	Log("open_offset:%d", fp->open_offset);
+	//Log("open_offset:%d", fp->open_offset);
 	return fp->open_offset;
 }
 

@@ -53,6 +53,7 @@ size_t fb_write(const void *buf, size_t offset, size_t len) {
 	int y = (int)(offset / video_info.width);
 	int w,h;
 	_FBCtlReg fb;
+	//Log("len:%d\tx:%d\ty:%d\twidth:%d\theight:%d",len,x,y,video_info.width,video_info.height);
 	if((len + x) >= video_info.width){
 		w = video_info.width - x;
 		fb.x = x;
@@ -86,7 +87,7 @@ size_t fb_write(const void *buf, size_t offset, size_t len) {
 		fb.pixels = (uint32_t *)buf;
 		dev->write(_DEVREG_VIDEO_FBCTL, &fb, len);
 	}
-	return len;
+	return len * 4;
 }
 
 void init_device() {
