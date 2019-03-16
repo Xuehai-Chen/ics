@@ -20,18 +20,19 @@ size_t events_read(void *buf, size_t offset, size_t len) {
 	_Device* dev = _device(1);
 	_KbdReg kbd;
 	dev->read(_DEVREG_INPUT_KBD, &kbd, sizeof(_KbdReg));
-	char event[len];
+	//char event[len];
 	//Log("keycode:%d, keydown:%d",kbd.keycode, kbd.keydown);
 	if((kbd.keycode & 0xff) == _KEY_NONE){
 		_Device* timer = _device(2);
 		_UptimeReg uptime;
 		timer->read(_DEVREG_TIMER_UPTIME, &uptime, len);
-		sprintf(event, "t %d\n", uptime.lo);
+		sprintf(buf, "t %d\n", uptime.lo);
 	}else{
-		sprintf(event, "k%c %s\n",(kbd.keydown ? 'd':'u'), keyname[kbd.keycode & 0xff]);
+		sprintf(buf, "k%s %s\n",(kbd.keydown ? "d":"u"), keyname[kbd.keycode & 0xff]);
 	}
-	memcpy(buf, event, len);
-	//Log("event: %s", buf);
+	//Log("event: %s", event);
+	//memcpy(buf, event, len);
+	//Log("buf: %s, %d", buf, len);
 	return strlen(buf);
 }
 
