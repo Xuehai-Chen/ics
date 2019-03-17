@@ -11,7 +11,7 @@ static void (*ref_difftest_exec)(uint64_t n);
 
 static bool is_skip_ref;
 static bool is_skip_dut;
-int is_detach_mode = 0;
+static bool is_detach_mode = false;
 
 void difftest_skip_ref() { is_skip_ref = true; }
 void difftest_skip_dut() { is_skip_dut = true; }
@@ -99,4 +99,14 @@ void difftest_step(uint32_t eip) {
 		Log("eflags: 0x%-10x\t0x%-10x", cpu.eflags.val, ref_r.eflags.val);
 		nemu_state = NEMU_ABORT;
 	}
+}
+
+int cmd_detach(char *args){
+	is_detach_mode = true;
+	return 0;
+}
+
+int cmd_attach(char *args){
+	is_detach_mode = false;
+	return 0;
 }

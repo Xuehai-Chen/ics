@@ -9,8 +9,6 @@
 
 void cpu_exec(uint64_t);
 
-extern int is_detach_mode;
-
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
 	static char *line_read = NULL;
@@ -51,9 +49,9 @@ static int cmd_w(char *args);
 
 static int cmd_d(char *args);
 
-static int cmd_detach(char *args);
+//extern int cmd_detach(char *args);
 
-static int cmd_attach(char *args);
+//extern int cmd_attach(char *args);
 
 static struct {
 	char *name;
@@ -178,16 +176,6 @@ static int cmd_d(char *args) {
 	sscanf(args, "%d", &n);
 	if(n >= 32) assert(0);
 	free_wp(n);
-	return 0;
-}
-
-static int cmd_detach(char *args){
-	is_detach_mode = true;
-	return 0;
-}
-
-static int cmd_attach(char *args){
-	is_detach_mode = false;
 	return 0;
 }
 

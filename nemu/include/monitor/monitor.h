@@ -3,7 +3,8 @@
 
 enum { NEMU_STOP, NEMU_RUNNING, NEMU_END, NEMU_ABORT };
 extern int nemu_state;
-extern int is_detach_mode;
+extern int cmd_detach(char* args);
+extern int cmd_attach(char* args);
 
 #define ENTRY_START 0x100000
 
