@@ -47,8 +47,8 @@ typedef union {
 
 		rtlreg_t cs;
 		struct{
-			uint32_t base;
 			uint16_t limit;
+			uint32_t base;
 		}idtr;
 
 		union{
