@@ -64,7 +64,7 @@ void difftest_step(uint32_t eip) {
 	CPU_state ref_r;
 
 	if (is_detach_mode){return;}
-	else { //Log("executing instruction at 0x%-10x", eip);}
+	//else { Log("executing instruction at 0x%-10x", eip);}
 
 	if (is_skip_dut) {
 		is_skip_dut = false;
