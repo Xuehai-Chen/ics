@@ -97,7 +97,7 @@ void difftest_step(uint32_t eip) {
 		}
 		Log("reg eip:0x%-10x\t0x%-10x", cpu.eip, ref_r.eip);
 		Log("eflags: 0x%-10x\t0x%-10x", cpu.eflags.val, ref_r.eflags.val);
-		nemu_state = NEMU_ABORT;
+		nemu_state = NEMU_STOP;
 	}
 }
 
