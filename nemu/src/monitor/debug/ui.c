@@ -9,6 +9,8 @@
 
 void cpu_exec(uint64_t);
 
+extern int is_detach_mode;
+
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
 	static char *line_read = NULL;
@@ -49,6 +51,10 @@ static int cmd_w(char *args);
 
 static int cmd_d(char *args);
 
+static int cmd_detach(char *args);
+
+static int cmd_attach(char *args);
+
 static struct {
 	char *name;
 	char *description;
@@ -62,7 +68,9 @@ static struct {
 	{ "p", "evaluate expr", cmd_p },
 	{ "x", "print memory", cmd_x },
 	{ "w", "set watchpoint", cmd_w},
-	{ "d", "delete watchpoint", cmd_d}
+	{ "d", "delete watchpoint", cmd_d},
+	{ "detach", "diff-test detach mode", cmd_detach},
+	{ "attach", "diff-test attach mode", cmd_attach}
 
 	/* TODO: Add more commands */
 
@@ -172,6 +180,17 @@ static int cmd_d(char *args) {
 	free_wp(n);
 	return 0;
 }
+
+static int cmd_detach(char *args){
+	is_detach_mode = true;
+	return 0;
+}
+
+static int cmd_attach(char *args){
+	is_detach_mode = false;
+	return 0;
+}
+
 void ui_mainloop(int is_batch_mode) {
 	if (is_batch_mode) {
 		cmd_c(NULL);

@@ -11,6 +11,7 @@ static void (*ref_difftest_exec)(uint64_t n);
 
 static bool is_skip_ref;
 static bool is_skip_dut;
+int is_detach_mode = 0;
 
 void difftest_skip_ref() { is_skip_ref = true; }
 void difftest_skip_dut() { is_skip_dut = true; }
@@ -24,6 +25,7 @@ void init_difftest(char *ref_so_file, long img_size) {
 
 	void *handle;
 	handle = dlopen(ref_so_file, RTLD_LAZY | RTLD_DEEPBIND);
+	//Log("diff_so_file:%s", ref_so_file);
 	assert(handle);
 
 	ref_difftest_memcpy_from_dut = dlsym(handle, "difftest_memcpy_from_dut");
@@ -53,6 +55,8 @@ void init_difftest(char *ref_so_file, long img_size) {
 
 void difftest_step(uint32_t eip) {
 	CPU_state ref_r;
+
+	if (is_detach_mode) return;
 
 	if (is_skip_dut) {
 		is_skip_dut = false;
