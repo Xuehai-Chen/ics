@@ -65,6 +65,10 @@ int _execve(const char *fname, char * const argv[], char *const envp[]) {
 	return _syscall_(SYS_execve, fname, argv, envp);
 }
 
+int _fork(){}
+
+int _wait(int *status){}
+
 // The code below is not used by Nanos-lite.
 // But to pass linking, they are defined as dummy functions
 
