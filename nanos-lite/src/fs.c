@@ -65,7 +65,7 @@ ssize_t fs_read(int fd, void *buf, size_t len){
 	assert(fd >= 0 && fd < NR_FILES);
 	Finfo *fp = &file_table[fd];
 	//Log("fd:%d, open_offset:%d, disk_offset:%d, len:%d", fd, fp->open_offset, fp->disk_offset, len);
-	if(fd != 5){
+	if(fd != 5 && fd != 4){
 		len = fp->open_offset + len > fp->size ? fp->size - fp->open_offset : len;
 	}
 	if(fp->read == NULL){
@@ -83,7 +83,7 @@ ssize_t fs_write(int fd, const void *buf, size_t len){
 	//printf("fd:%d, len:%d\n", fd,  len);
 	Finfo *fp= &file_table[fd];
 	//TODO len should be handled properly
-	if(fd != 1 && fd != 2){
+	if(fd != 1 && fd != 2 && fd != 6){
 		len = fp->open_offset + len > fp->size ? fp->size - fp->open_offset : len;
 	}
 	if(fp->write == NULL){
@@ -125,6 +125,7 @@ off_t fs_lseek(int fd, off_t offset, int whence){
 }
 
 int fs_close(int fd){
+	//Log("closing file: %d", fd);
 	return 0;
 }
 
