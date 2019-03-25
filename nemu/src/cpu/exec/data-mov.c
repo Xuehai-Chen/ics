@@ -1,5 +1,14 @@
 #include "cpu/exec.h"
 
+make_EHelper(stos){
+	t3 = id_dest->width;
+	rtl_lr(&t0, R_EAX, t3);
+	rtl_sext(&t1, &t1, t3);
+	rtl_add(&t2, &t1, &t3);
+	rtl_sr(R_EDI, &t2, t3);
+	print_asm_template1("stos");
+}
+
 make_EHelper(mov) {
 	operand_write(id_dest, &id_src->val);
 	print_asm_template2(mov);
