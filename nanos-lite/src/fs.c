@@ -53,6 +53,8 @@ int fs_open(const char *pathname, int flags, int mode){
 	for(int i = 0; i < NR_FILES; i++){
 		if(!strcmp(pathname, file_table[i].name)){
 			//Log("pathname:%s, file_table[i].name:%s, i:%d", pathname, file_table[i].name, i);
+			Finfo *fp = &file_table[i];
+			fp->open_offset = 0;
 			return i;
 		}
 	}
@@ -65,7 +67,7 @@ ssize_t fs_read(int fd, void *buf, size_t len){
 	assert(fd >= 0 && fd < NR_FILES);
 	Finfo *fp = &file_table[fd];
 	//Log("fd:%d, open_offset:%d, disk_offset:%d, len:%d", fd, fp->open_offset, fp->disk_offset, len);
-	if(fd != 5 && fd != 4){
+	if(fd != 5){
 		len = fp->open_offset + len > fp->size ? fp->size - fp->open_offset : len;
 	}
 	if(fp->read == NULL){

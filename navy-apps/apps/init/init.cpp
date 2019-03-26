@@ -65,6 +65,7 @@ static void clear_display();
 static void display_menu(int n);
 
 int main(int argc, char *argv[], char *envp[]) {
+	//printf("main start\n");
   if (!freopen("/dev/tty", "r", stdin) ||
       !freopen("/dev/tty", "w", stdout) ||
       !freopen("/dev/tty", "w", stderr)) {
@@ -72,10 +73,13 @@ int main(int argc, char *argv[], char *envp[]) {
     exit(1);
   }
 
+	//printf("before open display\n");
   open_display();
 
+	//printf("before open /dev/events\n");
   evtdev = fopen("/dev/events", "r");
   font = new Font(font_fname);
+  //printf("before open /share/pictures/projectn.bmp\n");
   NDL_LoadBitmap(&logo, "/share/pictures/projectn.bmp");
   set_i_max();
 
@@ -143,6 +147,7 @@ static void open_display() {
     fprintf(stderr, "[IGN] Invalid display information.\n");
     return;
   }
+  //printf("display width:%d, height:%d\n", W, H);
 
   NDL_OpenDisplay(W, H);
 }
