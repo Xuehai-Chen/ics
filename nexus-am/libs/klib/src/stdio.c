@@ -64,7 +64,7 @@ const char *src = fmt;
 					*(buf++) = '-';
 				}
 				while(i/idx == 0) idx/=10;
-				while(idx > 0){
+				while(idx >= 1){
 					*(buf++) = '0' + i/idx;
 					i = i%idx;
 					idx/=10;

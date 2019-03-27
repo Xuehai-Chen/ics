@@ -20,7 +20,7 @@ size_t events_read(void *buf, size_t offset, size_t len) {
 	_Device* dev = _device(1);
 	_KbdReg kbd;
 	dev->read(_DEVREG_INPUT_KBD, &kbd, sizeof(_KbdReg));
-	//char event[len];
+	memset(buf, 0, len);
 	//Log("keycode:%d, keydown:%d",kbd.keycode, kbd.keydown);
 	if((kbd.keycode & 0xff) == _KEY_NONE){
 		_Device* timer = _device(2);
