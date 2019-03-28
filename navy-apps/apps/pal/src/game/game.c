@@ -78,9 +78,7 @@ PAL_GameMain(
    //
    // Show the opening menu.
    //
-   printf("before PAL_OpeningMenu\n");
    gpGlobals->bCurrentSaveSlot = (BYTE)PAL_OpeningMenu();
-   printf("after PAL_OpeningMenu\n");
 
    //
    // Initialize game data and set the flags to load the game resources.
