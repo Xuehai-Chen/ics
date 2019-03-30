@@ -80,5 +80,19 @@ int _map(_Protect *p, void *va, void *pa, int mode) {
 }
 
 _Context *_ucontext(_Protect *p, _Area ustack, _Area kstack, void *entry, void *args) {
-  return NULL;
+	int* stack_ptr = (int*)ustack.end;
+	*(stack_ptr--) = 0x0; //envp
+	*(stack_ptr--) = 0x0; //argc
+	*(stack_ptr--) = 0x0; //argc
+	*(stack_ptr--) = 0x2; //eflags
+	*(stack_ptr--) = 0x8; //cs
+	*(stack_ptr--) = (int)entry; //eip
+	*(stack_ptr--) = 0x0; //err
+	*(stack_ptr--) = 0x0; //irq
+	for(int i = 0; i < 8; i++){
+		*(stack_ptr--) = 0x0; //general registers
+	}
+	*(stack_ptr) = 0x0; //prot
+	*(int*)ustack.start = (int)stack_ptr;
+	return (_Context*)stack_ptr;
 }
