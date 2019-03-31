@@ -7,8 +7,11 @@ void vectrap();
 void vecnull();
 void vecsys();
 void irq0();
+void get_cur_as(_Context*);
+void _switch(_Context*);
 
 _Context* irq_handle(_Context *cp) {
+	get_cur_as(cp);
 	_Context *next = cp;
 	if (user_handler) {
 		_Event ev = {0};
@@ -27,7 +30,7 @@ _Context* irq_handle(_Context *cp) {
 			next = cp;
 		}
 	}
-
+	_switch(next);
 	return next;
 }
 

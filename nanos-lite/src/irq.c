@@ -13,7 +13,7 @@ static _Context* do_event(_Event e, _Context* c) {
 		case _EVENT_YIELD:
 			//Log("event: _EVENT_YIELD");
 			cp = schedule(c);
-			Log("prev context: %d\tscheduling context: %d", c, cp);
+			//Log("prev context: %d\tscheduling context: %d", c, cp);
 			return cp;
 		default: panic("Unhandled event ID = %d", e.event);
 	}
