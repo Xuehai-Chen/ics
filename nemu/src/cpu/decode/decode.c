@@ -97,30 +97,6 @@ static inline void decode_op_rm(vaddr_t *eip, Operand *rm, bool load_rm_val, Ope
 	read_ModR_M(eip, rm, load_rm_val, reg, load_reg_val);
 }
 
-static inline void decode_op_rm_ctrl(vaddr_t *eip, Operand *r1, bool load_r1_val, Operand *r2, bool load_r2_val){
-	ModR_M m;
-	m.val = instr_fetch(eip, 1);
-	r1->type = OP_TYPE_CTRL_REG;
-	r1->reg = m.reg;
-	if(load_r1_val){
-		switch(m.reg){
-			case 0:
-				rtl_get_cr0(&r1->val);
-				break;
-			case 3:
-				rtl_get_cr3(&r1->val);
-				break;
-			default:
-				assert(0);
-		}
-	}
-	r2->type = OP_TYPE_REG;
-	r2->reg = m.R_M;
-	if(load_r2_val){
-		rtl_lr(&r2->val, r2->reg, r2->width);
-	}
-}
-
 /* Ob, Ov */
 static inline make_DopHelper(O) {
 	op->type = OP_TYPE_MEM;
@@ -348,30 +324,8 @@ make_DHelper(out_a2dx) {
 #endif
 }
 
-make_DHelper(CR2G) {
-	decode_op_rm_ctrl(eip, id_src, true, id_dest, false);
-}
-
-make_DHelper(G2CR) {
-	decode_op_rm_ctrl(eip, id_dest, true, id_src, false);
-}
-
-
 void operand_write(Operand *op, rtlreg_t* src) {
 	if (op->type == OP_TYPE_REG) { rtl_sr(op->reg, src, op->width); }
 	else if (op->type == OP_TYPE_MEM) { rtl_sm(&op->addr, src, op->width); }
-	else if (op->type == OP_TYPE_CTRL_REG) {
-		//Log("writing ctrl reg:%d, val:0x%-10x\t\t", op->reg, *src);
-		switch(op->reg){
-			case 0:
-				rtl_set_cr0(*src);
-				break;
-			case 3:
-				rtl_set_cr3(*src);
-				break;
-			default:
-				assert(0);
-		}
-	}
 	else { assert(0); }
 }

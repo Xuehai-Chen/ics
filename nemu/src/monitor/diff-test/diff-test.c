@@ -135,5 +135,7 @@ int cmd_attach(char *args){
 	}
 	Log("attaching... reg eip:0x%-10x\t0x%-10x", cpu.eip, ref_r.eip);
 	Log("attaching... eflags: 0x%-10x\t0x%-10x", cpu.eflags.val, ref_r.eflags.val);
+	Log("attaching... cr0: 0x%-10x\t0x%-10x", cpu.cr0.val, ref_r.cr0.val);
+	Log("attaching... cr3: 0x%-10x\t0x%-10x", cpu.cr3, ref_r.cr3);
 	return 0;
 }

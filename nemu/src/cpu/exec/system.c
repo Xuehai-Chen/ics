@@ -25,13 +25,34 @@ make_EHelper(lidt) {
 }
 
 make_EHelper(mov_r2cr) {
-	TODO();
+	//Log("dest reg:0x%-10x\tsrc:0x%-10x\twidth:%d",id_dest->reg,id_src->val,id_src->width);
+	switch(id_dest->reg){
+		case 0:
+			rtl_set_cr0(id_src->val);
+			break;
+		case 3:
+			rtl_set_cr3(id_src->val);
+			break;
+		default:
+			assert(0);
+	}
 
 	print_asm("movl %%%s,%%cr%d", reg_name(id_src->reg, 4), id_dest->reg);
 }
 
 make_EHelper(mov_cr2r) {
-	TODO();
+	//Log("dest:0x%-10x\tsrc reg:0x%-10x\twidth:%d",id_dest->val,id_src->reg,id_src->width);
+	switch(id_src->reg){
+		case 0:
+			rtl_get_cr0(&t0);
+			break;
+		case 3:
+			rtl_get_cr3(&t0);
+			break;
+		default:
+			assert(0);
+	}
+	operand_write(id_dest, &t0);
 
 	print_asm("movl %%cr%d,%%%s", id_src->reg, reg_name(id_dest->reg, 4));
 

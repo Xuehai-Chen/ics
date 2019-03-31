@@ -45,12 +45,6 @@ typedef union {
 			uint32_t val;
 		}eflags;
 
-		rtlreg_t cs;
-		struct{
-			uint16_t limit;
-			uint32_t base;
-		}idtr;
-
 		union{
 			struct{
 				uint32_t dont_care: 31;
@@ -60,6 +54,12 @@ typedef union {
 		}cr0;
 
 		rtlreg_t cr3;
+		rtlreg_t cs;
+		struct{
+			uint16_t limit;
+			uint32_t base;
+		}idtr;
+
 	};
 
 } CPU_state;
