@@ -14,6 +14,8 @@ typedef union {
     uintptr_t cur_brk;
     // we do not free memory, so use `max_brk' to determine when to call _map()
     uintptr_t max_brk;
+	uint32_t nice; //higher this value, more cpu time will be allocated to this process
+	uint32_t run;
   };
 } PCB;
 

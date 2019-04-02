@@ -7,6 +7,7 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
 	 */
 
 	rtl_push(&cpu.eflags.val);
+	rtl_set_IF(false);
 	rtl_push(&cpu.cs);
 	rtl_push(&ret_addr);
 	//GateDesc *gd = (uint64_t *)cpu.idtr.base + NO;
@@ -19,4 +20,5 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
 }
 
 void dev_raise_intr() {
+	cpu.INTR = true;
 }

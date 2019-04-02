@@ -253,4 +253,8 @@ static inline void rtl_set_cr3(const rtlreg_t val){
 		cpu.cr3 = val;
 }
 
+static inline void rtl_set_IF(const bool val){
+	cpu.eflags.IF = val;
+}
+
 #endif

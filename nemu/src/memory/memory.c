@@ -23,6 +23,11 @@ paddr_t page_translate(paddr_t addr, int type){
 	//Log("cr3:0x%-10x\t addr:0x%-10x", cpu.cr3, addr);
 	uint32_t pte_idx = paddr_read((paddr_t)(cr3 + ((addr >> 22) & 0x3ff)*4), 4);
 	//Log("pte_idx:0x%-10x", pte_idx);
+	/**
+	if(!(pte_idx & 0x1)){
+		Log("addr:0x%-10d\tpte_idx:0x%-10x", addr, pte_idx);
+	}
+	*/
 	assert(pte_idx & 0x1);
 	uint32_t pte_addr = (paddr_t)((pte_idx & (~0xfff)) + ((addr >> 12) & 0x3ff)*4);
 	uint32_t pte = paddr_read(pte_addr, 4);

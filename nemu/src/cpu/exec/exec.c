@@ -12,6 +12,9 @@ typedef struct {
 #define EXW(ex, w)         {NULL, concat(exec_, ex), w}
 #define EX(ex)             EXW(ex, 0)
 #define EMPTY              EX(inv)
+#define IRQ_TIMER 0x32
+
+void raise_intr(uint8_t, vaddr_t);
 
 static inline void set_width(int width) {
 	if (width == 0) {
@@ -251,4 +254,11 @@ void exec_wrapper(bool print_flag) {
 	void difftest_step(uint32_t);
 	difftest_step(ori_eip);
 #endif
+
+	if (cpu.INTR & cpu.eflags.IF) {
+		//Log("timer interrupts is triggered");
+		cpu.INTR = false;
+		raise_intr(IRQ_TIMER, cpu.eip);
+		update_eip();
+	}
 }

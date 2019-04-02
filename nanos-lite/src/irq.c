@@ -7,6 +7,10 @@ _Context *schedule(_Context*);
 static _Context* do_event(_Event e, _Context* c) {
 	_Context* cp;
 	switch (e.event) {
+		case _EVENT_IRQ_TIMER:
+			Log("event: _EVENT_IRQ_TIMER");
+			_yield();
+			break;
 		case _EVENT_SYSCALL:
 			do_syscall(c);
 			break;

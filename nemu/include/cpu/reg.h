@@ -59,7 +59,7 @@ typedef union {
 			uint16_t limit;
 			uint32_t base;
 		}idtr;
-
+		bool INTR;
 	};
 
 } CPU_state;
