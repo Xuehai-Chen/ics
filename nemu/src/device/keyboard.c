@@ -3,13 +3,11 @@
 #include <SDL2/SDL.h>
 
 #define I8042_DATA_PORT 0x60
-#define I8042_STATUS_PORT 0x64
-#define I8042_STATUS_HASKEY_MASK 0x1
 #define KEYBOARD_IRQ 1
 
 static uint32_t *i8042_data_port_base;
-static uint8_t *i8042_status_port_base;
 
+// Note that this is not the standard
 #define _KEYS(_) \
   _(ESCAPE) _(F1) _(F2) _(F3) _(F4) _(F5) _(F6) _(F7) _(F8) _(F9) _(F10) _(F11) _(F12) \
 _(GRAVE) _(1) _(2) _(3) _(4) _(5) _(6) _(7) _(8) _(9) _(0) _(MINUS) _(EQUALS) _(BACKSPACE) \
@@ -43,28 +41,23 @@ void send_key(uint8_t scancode, bool is_keydown) {
     uint32_t am_scancode = keymap[scancode] | (is_keydown ? KEYDOWN_MASK : 0);
     key_queue[key_r] = am_scancode;
     key_r = (key_r + 1) % KEY_QUEUE_LEN;
+    Assert(key_r != key_f, "key queue overflow!");
   }
 }
 
-void i8042_io_handler(ioaddr_t addr, int len, bool is_write) {
-  if (!is_write) {
-    if (addr == I8042_DATA_PORT) {
-      i8042_status_port_base[0] &= ~I8042_STATUS_HASKEY_MASK;
-    }
-    else if (addr == I8042_STATUS_PORT) {
-      if ((i8042_status_port_base[0] & I8042_STATUS_HASKEY_MASK) == 0) {
-        if (key_f != key_r) {
-          i8042_data_port_base[0] = key_queue[key_f];
-          i8042_status_port_base[0] |= I8042_STATUS_HASKEY_MASK;
-          key_f = (key_f + 1) % KEY_QUEUE_LEN;
-        }
-      }
-    }
+static void i8042_data_io_handler(ioaddr_t addr, int len, bool is_write) {
+  assert(!is_write);
+  assert(addr == I8042_DATA_PORT);
+  if (key_f != key_r) {
+    i8042_data_port_base[0] = key_queue[key_f];
+    key_f = (key_f + 1) % KEY_QUEUE_LEN;
+  }
+  else {
+    i8042_data_port_base[0] = _KEY_NONE;
   }
 }
 
 void init_i8042() {
-  i8042_data_port_base = add_pio_map(I8042_DATA_PORT, 4, i8042_io_handler);
-  i8042_status_port_base = add_pio_map(I8042_STATUS_PORT, 1, i8042_io_handler);
-  i8042_status_port_base[0] = 0x0;
+  i8042_data_port_base = add_pio_map(I8042_DATA_PORT, 4, i8042_data_io_handler);
+  i8042_data_port_base[0] = _KEY_NONE;
 }

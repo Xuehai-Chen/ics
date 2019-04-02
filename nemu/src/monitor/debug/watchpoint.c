@@ -32,7 +32,7 @@ WP* new_wp(){
 	result->next = temp;
 	head = result;
 	return result;
-} 
+}
 
 void free_wp(int n){
 	WP *wp = &wp_pool[n];
@@ -72,5 +72,4 @@ bool check_watchpoints(){
 	}
 	return result;
 }
-
 

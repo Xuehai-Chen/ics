@@ -24,11 +24,12 @@ typedef union {
 	/* Do NOT change the order of the GPRs' definitions. */
 
 	/* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
-	 * in PA2 able to directly access these registers.
-	 */
+	 * 	 * in PA2 able to directly access these registers.
+	 * 	 	 */
 	struct{
 		rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
 
+		vaddr_t eip;
 		union{
 			struct{
 				uint8_t CF: 1;
@@ -44,12 +45,6 @@ typedef union {
 			uint32_t val;
 		}eflags;
 
-		vaddr_t eip;
-		rtlreg_t cs;
-		struct{
-			uint32_t base;
-			uint16_t limit;
-		}idtr;
 		union{
 			struct{
 				uint32_t dont_care: 31;
@@ -57,7 +52,14 @@ typedef union {
 			};
 			uint32_t val;
 		}cr0;
+
 		rtlreg_t cr3;
+		rtlreg_t cs;
+		struct{
+			uint16_t limit;
+			uint32_t base;
+		}idtr;
+		bool INTR;
 	};
 
 } CPU_state;

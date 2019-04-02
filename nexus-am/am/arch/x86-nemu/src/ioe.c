@@ -1,48 +1,41 @@
 #include <am.h>
-#include <x86.h>
-#include <stdio.h>
+#include <amdev.h>
+#include <klib.h>
 
-#define RTC_PORT 0x48   // Note that this is not standard
-#define I8042_DATA_PORT 0x60
-#define I8042_STATUS_PORT 0x64
-static unsigned long boot_time;
-
-void _ioe_init() {
-	boot_time = inl(RTC_PORT);
+static inline size_t no_read(uintptr_t reg, void *buf, size_t size) {
+  assert(0);
+  return 0;
 }
 
-unsigned long _uptime() {
-	unsigned long now = inl(RTC_PORT);
-	return now - boot_time;
+static inline size_t no_write(uintptr_t reg, void *buf, size_t size) {
+  assert(0);
+  return 0;
 }
 
-uint32_t* const fb = (uint32_t *)0x40000;
+void vga_init();
+void timer_init();
 
-_Screen _screen = {
-	.width  = 400,
-	.height = 300,
+int _ioe_init() {
+  vga_init();
+  timer_init();
+  return 0;
+}
+
+size_t timer_read(uintptr_t reg, void *buf, size_t size);
+size_t video_read(uintptr_t reg, void *buf, size_t size);
+size_t video_write(uintptr_t reg, void *buf, size_t size);
+size_t input_read(uintptr_t reg, void *buf, size_t size);
+
+
+static _Device n86_dev[] = {
+  {_DEV_INPUT,   "NEMU Keyboard Controller", input_read, no_write},
+  {_DEV_TIMER,   "NEMU Timer", timer_read, no_write},
+  {_DEV_VIDEO,   "NEMU VGA Controller", video_read, video_write},
 };
 
-extern void* memcpy(void *, const void *, int);
+#define NR_DEV (sizeof(n86_dev) / sizeof(n86_dev[0]))
 
-void _draw_rect(const uint32_t *pixels, int x, int y, int w, int h) {
-	int i;
-	int cp_bytes = sizeof(uint32_t) * (w < _screen.width - x ? w : _screen.width - x);
-	for (i = 0; i < h && i < (_screen.height - y); i++) {
-		memcpy(&fb[(y +i) *_screen.width + x], pixels, cp_bytes);
-		pixels += w;
-	}
-}
-
-void _draw_sync() {
-}
-
-int _read_key() {
-	uint64_t status = inb(I8042_STATUS_PORT);
-	if(status == 1){
-		uint64_t key = inl(I8042_DATA_PORT);
-		//printf("keyboard status:%d, key:0x%x\n", status,key);
-		return key;
-	}
-	return _KEY_NONE;
+_Device *_device(int n) {
+  n --;
+  return (n >= 0 && (unsigned int)n < NR_DEV) ? &n86_dev[n] : NULL;
 }

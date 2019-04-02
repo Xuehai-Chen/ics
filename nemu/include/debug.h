@@ -1,6 +1,7 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
+#include "common.h"
 #include <stdio.h>
 #include <assert.h>
 
@@ -17,14 +18,16 @@ extern FILE* log_fp;
 #	define Log_write(format, ...)
 #endif
 
-#define Log(format, ...) \
+#define printflog(format, ...) \
   do { \
-    fprintf(stdout, "\33[1;34m[%s,%d,%s] " format "\33[0m\n", \
-        __FILE__, __LINE__, __func__, ## __VA_ARGS__); \
+    printf(format, ## __VA_ARGS__); \
     fflush(stdout); \
-    Log_write("[%s,%d,%s] " format "\n", \
-        __FILE__, __LINE__, __func__, ## __VA_ARGS__); \
+    Log_write(format, ## __VA_ARGS__); \
   } while (0)
+
+#define Log(format, ...) \
+    printflog("\33[1;34m[%s,%d,%s] " format "\33[0m\n", \
+        __FILE__, __LINE__, __func__, ## __VA_ARGS__)
 
 #define Assert(cond, ...) \
   do { \

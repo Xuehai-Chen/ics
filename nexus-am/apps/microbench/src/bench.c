@@ -25,11 +25,11 @@ Benchmark benchmarks[] = {
 
 // Running a benchmark
 static void bench_prepare(Result *res) {
-  res->msec = _uptime();
+  res->msec = uptime();
 }
 
 static void bench_done(Result *res) {
-  res->msec = _uptime() - res->msec;
+  res->msec = uptime() - res->msec;
 }
 
 static const char *bench_check(Benchmark *bench) {
@@ -65,30 +65,30 @@ int main() {
     current = bench;
     setting = &bench->settings[SETTING];
     const char *msg = bench_check(bench);
-    printk("[%s] %s: ", bench->name, bench->desc);
+    printf("[%s] %s: ", bench->name, bench->desc);
     if (msg != NULL) {
-      printk("Ignored %s\n", msg);
+      printf("Ignored %s\n", msg);
     } else {
       unsigned long msec = ULONG_MAX;
       int succ = 1;
       for (int i = 0; i < REPEAT; i ++) {
         Result res;
         run_once(bench, &res);
-        printk(res.pass ? "*" : "X");
+        printf(res.pass ? "*" : "X");
         succ &= res.pass;
         if (res.msec < msec) msec = res.msec;
       }
 
-      if (succ) printk(" Passed.");
-      else printk(" Failed.");
+      if (succ) printf(" Passed.");
+      else printf(" Failed.");
 
       pass &= succ;
 
       unsigned long cur = score(bench, 0, msec);
 
-      printk("\n");
+      printf("\n");
       if (SETTING != 0) {
-        printk("  min time: %d ms [%d]\n", (unsigned int)msec, (unsigned int)cur);
+        printf("  min time: %d ms [%d]\n", (unsigned int)msec, (unsigned int)cur);
       }
 
       bench_score += cur;
@@ -97,13 +97,13 @@ int main() {
 
   bench_score /= sizeof(benchmarks) / sizeof(benchmarks[0]);
   
-  printk("==================================================\n");
-  printk("MicroBench %s", pass ? "PASS" : "FAIL");
+  printf("==================================================\n");
+  printf("MicroBench %s", pass ? "PASS" : "FAIL");
   if (SETTING != 0) {
-    printk("        %d Marks\n", (unsigned int)bench_score);
-    printk("                   vs. %d Marks (%s)\n", REF_SCORE, REF_CPU);
+    printf("        %d Marks\n", (unsigned int)bench_score);
+    printf("                   vs. %d Marks (%s)\n", REF_SCORE, REF_CPU);
   } else {
-    printk("\n");
+    printf("\n");
   }
   _halt(0);
   return 0;
@@ -131,28 +131,27 @@ void bench_reset() {
   start = (char*)_heap.start;
 }
 
-static int32_t seed = 1;
+static uint32_t seed = 1;
 
-void bench_srand(int32_t _seed) {
+void bench_srand(uint32_t _seed) {
   seed = _seed & 0x7fff;
 }
 
-int32_t bench_rand() {
-  seed = (seed * (int32_t)214013L + (int32_t)2531011L);
+uint32_t bench_rand() {
+  seed = (seed * (uint32_t)214013L + (uint32_t)2531011L);
   return (seed >> 16) & 0x7fff;
 }
 
 // FNV hash
 uint32_t checksum(void *start, void *end) {
-  const int32_t x = 16777619;
-  int32_t hash = 2166136261u;
+  const uint32_t x = 16777619;
+  uint32_t h1 = 2166136261u;
   for (uint8_t *p = (uint8_t*)start; p + 4 < (uint8_t*)end; p += 4) {
-    int32_t h1 = hash;
     for (int i = 0; i < 4; i ++) {
       h1 = (h1 ^ p[i]) * x;
     }
-    hash = h1;
   }
+  int32_t hash = (uint32_t)h1;
   hash += hash << 13;
   hash ^= hash >> 7;
   hash += hash << 3;

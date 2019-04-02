@@ -35,18 +35,23 @@ static int cmd_c(char *args) {
 static int cmd_q(char *args) {
 	return -1;
 }
-
 static int cmd_help(char *args);
 
 static int cmd_si(char *args);
 
 static int cmd_info(char *args);
 
+static int cmd_p(char *args);
+
 static int cmd_x(char *args);
 
 static int cmd_w(char *args);
 
 static int cmd_d(char *args);
+
+//extern int cmd_detach(char *args);
+
+//extern int cmd_attach(char *args);
 
 static struct {
 	char *name;
@@ -58,9 +63,12 @@ static struct {
 	{ "q", "Exit NEMU", cmd_q },
 	{ "si", "single execution", cmd_si },
 	{ "info", "print prog status", cmd_info },
+	{ "p", "evaluate expr", cmd_p },
 	{ "x", "print memory", cmd_x },
 	{ "w", "set watchpoint", cmd_w},
-	{ "d", "delete watchpoint", cmd_d}
+	{ "d", "delete watchpoint", cmd_d},
+	{ "detach", "diff-test detach mode", cmd_detach},
+	{ "attach", "diff-test attach mode", cmd_attach}
 
 	/* TODO: Add more commands */
 
@@ -126,6 +134,15 @@ static int cmd_info(char *args) {
 	return 0;
 }
 
+static int cmd_p(char *args) {
+	bool success;
+	uint32_t val = expr(args, &success);
+	if(success){
+		printf("value: 0x%-10x\t%d\n", val, val);
+	}
+	return 0;
+}
+
 static int cmd_x(char *args) {
 	int n;
 	vaddr_t addr;
@@ -168,8 +185,7 @@ void ui_mainloop(int is_batch_mode) {
 		return;
 	}
 
-	while (1) {
-		char *str = rl_gets();
+	for (char *str; (str = rl_gets()) != NULL; ) {
 		char *str_end = str + strlen(str);
 
 		/* extract the first token as the command */

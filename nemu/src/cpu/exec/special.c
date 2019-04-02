@@ -1,6 +1,10 @@
 #include "cpu/exec.h"
 #include "monitor/monitor.h"
 
+void interpret_rtl_exit(int state) {
+  nemu_state = state;
+}
+
 make_EHelper(nop) {
   print_asm("nop");
 }
@@ -27,20 +31,19 @@ make_EHelper(inv) {
       "* The machine is always right!\n"
       "* Every line of untested code is always wrong!\33[0m\n\n", logo);
 
-  nemu_state = NEMU_END;
+  rtl_exit(NEMU_ABORT);
 
   print_asm("invalid opcode");
 }
 
 make_EHelper(nemu_trap) {
-  print_asm("nemu trap (eax = %d)", cpu.eax);
-
-  printf("\33[1;31mnemu: HIT %s TRAP\33[0m at eip = 0x%08x\n\n",
-      (cpu.eax == 0 ? "GOOD" : "BAD"), cpu.eip);
-  nemu_state = NEMU_END;
-
-#ifdef DIFF_TEST
-  extern void diff_test_skip_qemu();
-  diff_test_skip_qemu();
+#if defined(DIFF_TEST)
+  void difftest_skip_ref();
+  difftest_skip_ref();
 #endif
+
+  rtl_exit(NEMU_END);
+
+  print_asm("nemu trap");
+  return;
 }

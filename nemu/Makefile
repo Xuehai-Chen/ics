@@ -1,8 +1,15 @@
 NAME = nemu
 INC_DIR += ./include
 BUILD_DIR ?= ./build
-OBJ_DIR ?= $(BUILD_DIR)/obj
-BINARY ?= $(BUILD_DIR)/$(NAME)
+
+ifeq ($(SHARE), 1)
+SO = -so
+SO_CFLAGS = -fPIC -D_SHARE=1
+SO_LDLAGS = -shared -fPIC
+endif
+
+OBJ_DIR ?= $(BUILD_DIR)/obj$(SO)
+BINARY ?= $(BUILD_DIR)/$(NAME)$(SO)
 
 include Makefile.git
 
@@ -12,7 +19,8 @@ include Makefile.git
 CC = gcc
 LD = gcc
 INCLUDES  = $(addprefix -I, $(INC_DIR))
-CFLAGS   += -O2 -MMD -Wall -Werror -ggdb $(INCLUDES)
+CFLAGS   += -O2 -MMD -Wall -Werror -ggdb3 $(INCLUDES) -fomit-frame-pointer
+CFLAGS   += -DDIFF_TEST_QEMU
 
 # Files to be compiled
 SRCS = $(shell find src/ -name "*.c")
@@ -22,17 +30,19 @@ OBJS = $(SRCS:src/%.c=$(OBJ_DIR)/%.o)
 $(OBJ_DIR)/%.o: src/%.c
 	@echo + CC $<
 	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(SO_CFLAGS) -c -o $@ $<
+
 
 # Depencies
 -include $(OBJS:.o=.d)
 
 # Some convinient rules
 
-.PHONY: app run submit clean
+.PHONY: app run clean
 app: $(BINARY)
 
-ARGS ?= -l $(BUILD_DIR)/nemu-log.txt
+override ARGS ?= -l $(BUILD_DIR)/nemu-log.txt
+override ARGS += -d $(NEMU_HOME)/tools/qemu-diff/build/qemu-so
 
 # Command to execute NEMU
 NEMU_EXEC := $(BINARY) $(ARGS)
@@ -40,7 +50,7 @@ NEMU_EXEC := $(BINARY) $(ARGS)
 $(BINARY): $(OBJS)
 	$(call git_commit, "compile")
 	@echo + LD $@
-	@$(LD) -O2 -o $@ $^ -lSDL2 -lreadline
+	@$(LD) -O2 -rdynamic $(SO_LDLAGS) -o $@ $^ -lSDL2 -lreadline -ldl
 
 run: $(BINARY)
 	$(call git_commit, "run")
@@ -51,4 +61,6 @@ gdb: $(BINARY)
 	gdb -s $(BINARY) --args $(NEMU_EXEC)
 
 clean: 
-	rm -rf $(BUILD_DIR)
+	-rm -rf $(BUILD_DIR)
+	$(MAKE) -C tools/gen-expr clean
+	$(MAKE) -C tools/qemu-diff clean

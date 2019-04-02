@@ -1,127 +1,104 @@
 /*
- * The Nexus Abstract Architecture
- * Minmal architectural-independent library for implementing system software
- *
- * Please refer to the AM specification
+ * The Nexus Abstract Machine Architecture (AM)
+ * A portable abstraction of a bare-metal computer
  */
+
 #ifndef __AM_H__
 #define __AM_H__
 
-#include <stdint.h>
 #include <sys/types.h>
+#include <stdint.h>
+#include <stddef.h>
 #include <arch.h>
-
-#ifndef NULL
-# define NULL ((void *)0)
-#endif
-
-#define MAX_CPU 8
-
-typedef struct _Area {
-  void *start, *end;
-} _Area; 
-
-#define _KEYS(_) \
-  _(ESCAPE) _(F1) _(F2) _(F3) _(F4) _(F5) _(F6) _(F7) _(F8) _(F9) _(F10) _(F11) _(F12) \
-  _(GRAVE) _(1) _(2) _(3) _(4) _(5) _(6) _(7) _(8) _(9) _(0) _(MINUS) _(EQUALS) _(BACKSPACE) \
-  _(TAB) _(Q) _(W) _(E) _(R) _(T) _(Y) _(U) _(I) _(O) _(P) _(LEFTBRACKET) _(RIGHTBRACKET) _(BACKSLASH) \
-  _(CAPSLOCK) _(A) _(S) _(D) _(F) _(G) _(H) _(J) _(K) _(L) _(SEMICOLON) _(APOSTROPHE) _(RETURN) \
-  _(LSHIFT) _(Z) _(X) _(C) _(V) _(B) _(N) _(M) _(COMMA) _(PERIOD) _(SLASH) _(RSHIFT) \
-  _(LCTRL) _(APPLICATION) _(LALT) _(SPACE) _(RALT) _(RCTRL) \
-  _(UP) _(DOWN) _(LEFT) _(RIGHT) _(INSERT) _(DELETE) _(HOME) _(END) _(PAGEUP) _(PAGEDOWN)
-
-#define _KEY_NAME(k) _KEY_##k,
-
-enum {
-  _KEY_NONE = 0,
-  _KEYS(_KEY_NAME)
-};
-
-#define _EVENTS(_) \
-  _(IRQ_TIME) _(IRQ_IODEV) \
-  _(ERROR) _(PAGE_FAULT) _(BUS_ERROR) _(NUMERIC) \
-  _(TRAP) _(SYSCALL)
-
-#define _EVENT_NAME(ev) _EVENT_##ev,
-
-enum {
-  _EVENT_NULL = 0,
-  _EVENTS(_EVENT_NAME)
-};
-
-typedef struct _RegSet _RegSet;
-
-typedef struct _Event {
-  int event;
-  intptr_t cause;
-} _Event;
-
-typedef struct _Screen {
-  int width, height;
-} _Screen;
-
-typedef struct _Protect {
-  _Area area; 
-  void *ptr;
-} _Protect;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// =======================================================================
-// [0] Turing Machine: code execution & a heap memory
-// =======================================================================
+// ===================== Constants and Structs =======================
 
-void _putc(char ch);
-void _halt(int code);
+enum {
+  _EVENT_NULL = 0,
+  _EVENT_ERROR,
+  _EVENT_IRQ_TIMER,
+  _EVENT_IRQ_IODEV,
+  _EVENT_PAGEFAULT,
+  _EVENT_YIELD,
+  _EVENT_SYSCALL,
+};
+
+#define _PROT_NONE   1    // no access
+#define _PROT_READ   2    // can read
+#define _PROT_WRITE  4    // can write
+#define _PROT_EXEC   8    // can execute
+
+// Memory area for [@start, @end)
+typedef struct _Area {
+  void *start, *end;
+} _Area; 
+
+// A device (@id, @name) with @read/@write support
+// See <amdev.h> for device descriptions
+typedef struct _Device {
+  uint32_t id;
+  const char *name;
+  size_t (*read) (uintptr_t reg, void *buf, size_t size);
+  size_t (*write)(uintptr_t reg, void *buf, size_t size);
+} _Device;
+
+// An event of type @event, caused by @cause of pointer @ref
+typedef struct _Event {
+  int event;
+  uintptr_t cause, ref;
+  const char *msg;
+} _Event;
+typedef struct _Context _Context;
+
+// A protected address space with user memory @area
+// and arch-dependent @ptr
+typedef struct _Protect {
+  size_t pgsize;
+  _Area area;
+  void *ptr;
+} _Protect;
+
+// ====================== Turing Machine (TRM) =======================
+
 extern _Area _heap;
+void _putc(char ch);
+void _halt(int code) __attribute__((__noreturn__));
 
-// =======================================================================
-// [1] IO Extension (IOE)
-// =======================================================================
+// ======================= I/O Extension (IOE) =======================
 
-void _ioe_init();
-unsigned long _uptime();
-int _read_key();
-void _draw_rect(const uint32_t *pixels, int x, int y, int w, int h);
-void _draw_sync();
-extern _Screen _screen;
+int _ioe_init();
+_Device *_device(int n);
 
-// =======================================================================
-// [2] Asynchronous Extension (ASYE)
-// =======================================================================
+// ====================== Context Extension (CTE) ====================
 
-void _asye_init(_RegSet* (*l)(_Event ev, _RegSet *regs));
-_RegSet *_make(_Area kstack, void *entry, void *arg);
-void _trap();
-int _istatus(int enable);
+int _cte_init(_Context *(*handler)(_Event ev, _Context *ctx));
+void _yield();
+int _intr_read();
+void _intr_write(int enable);
+_Context *_kcontext(_Area kstack, void (*entry)(void *), void *arg);
 
-// =======================================================================
-// [3] Protection Extension (PTE)
-// =======================================================================
+// ================= Virtual Memory Extension (VME) ==================
 
-void _pte_init(void*(*palloc)(), void (*pfree)(void*));
-void _protect(_Protect *p);
-void _release(_Protect *p);
-void _map(_Protect *p, void *va, void *pa);
-void _unmap(_Protect *p, void *va);
-void _switch(_Protect *p);
-_RegSet *_umake(_Protect *p, _Area ustack, _Area kstack, void *entry, char *const argv[], char *const envp[]);
+int _vme_init(void *(*pgalloc)(size_t size), void (*pgfree)(void *));
+int _protect(_Protect *p);
+void _unprotect(_Protect *p);
+int _map(_Protect *p, void *va, void *pa, int prot);
+_Context *_ucontext(_Protect *p, _Area ustack, _Area kstack,
+                                 void *entry, void *args);
 
-// =======================================================================
-// [4] Multi-Processor Extension (MPE)
-// =======================================================================
+// ================= Multi-Processor Extension (MPE) =================
 
-void _mpe_init(void (*entry)());
+int _mpe_init(void (*entry)());
+int _ncpu();
 int _cpu();
 intptr_t _atomic_xchg(volatile intptr_t *addr, intptr_t newval);
-void _barrier();
-extern int _NR_CPU;
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-

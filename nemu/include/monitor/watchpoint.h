@@ -4,13 +4,13 @@
 #include "common.h"
 
 typedef struct watchpoint {
-  int NO;
-  struct watchpoint *next;
+	int NO;
+	struct watchpoint *next;
 
-  /* TODO: Add more members if necessary */
-  char expr[1024];
-  uint32_t value;
- 
+	/* TODO: Add more members if necessary */
+	char expr[1024];
+	uint32_t value;
+
 } WP;
 
 WP* get_head();

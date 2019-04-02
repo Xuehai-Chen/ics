@@ -2,30 +2,60 @@
 
 #define MAX_NR_PROC 4
 
-static PCB pcb[MAX_NR_PROC];
-static int nr_proc = 0;
-PCB *current = NULL;
+static PCB pcb[MAX_NR_PROC] __attribute__((used));
+static PCB pcb_boot;
+PCB *current;
 
-uintptr_t loader(_Protect *as, const char *filename);
+void naive_uload(PCB*, const char*);
+void context_kload(PCB*, void*);
+void context_uload(PCB*, char*);
 
-void load_prog(const char *filename) {
-  int i = nr_proc ++;
-  _protect(&pcb[i].as);
-
-  uintptr_t entry = loader(&pcb[i].as, filename);
-
-  // TODO: remove the following three lines after you have implemented _umake()
-  _switch(&pcb[i].as);
-  current = &pcb[i];
-  ((void (*)(void))entry)();
-
-  _Area stack;
-  stack.start = pcb[i].stack;
-  stack.end = stack.start + sizeof(pcb[i].stack);
-
-  pcb[i].tf = _umake(&pcb[i].as, stack, stack, (void *)entry, NULL, NULL);
+void switch_boot_pcb() {
+	current = &pcb_boot;
 }
 
-_RegSet* schedule(_RegSet *prev) {
-  return NULL;
+void hello_fun(void *arg) {
+	int j = 1;
+	while (1) {
+		Log("Hello World from Nanos-lite for the %dth time!", j);
+		j ++;
+		_yield();
+	}
+}
+
+void init_proc() {
+	//naive_uload(NULL, "/bin/init");
+	context_uload(&pcb[0], "/bin/hello");
+	pcb[0].nice = 1;
+	context_uload(&pcb[1], "/bin/pal");
+	pcb[1].nice = 10;
+	switch_boot_pcb();
+}
+
+_Context* schedule(_Context *prev) {
+	current->cp = prev;
+	//current = (current == &pcb[1] ? &pcb[0] : &pcb[1]);
+	int i = 0;
+	bool needSchedule = false;
+	if(current == &pcb_boot) needSchedule = true;
+	for(; i < MAX_NR_PROC; i++){
+		//Log("i:%d, run:%d, nice:%d", i, pcb[i].run, pcb[i].nice);
+		if(current == &pcb[i]){
+			if(pcb[i].run && pcb[i].run % pcb[i].nice == 0){
+				needSchedule = true;
+			}
+			pcb[i].run++;
+			break;
+		}
+	}
+	if(needSchedule){
+		for(int j = 1; j <= MAX_NR_PROC; j++){
+			int idx = (i + j) % MAX_NR_PROC;
+			if(pcb[idx].nice){
+				current = &pcb[idx];
+				break;
+			}
+		}
+	}
+	return current->cp;
 }

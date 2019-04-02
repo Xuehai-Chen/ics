@@ -1,6 +1,5 @@
 #include "cpu/exec.h"
-
-void diff_test_skip_qemu();
+#include "cpu/cc.h"
 
 make_EHelper(test) {
 	rtl_sext(&id_src->val, &id_src->val, id_src->width);
@@ -57,57 +56,50 @@ make_EHelper(or) {
 }
 
 make_EHelper(sar) {
+	// unnecessary to update CF and OF in NEMU
 	rtl_sar(&t0, &id_dest->val, &id_src->val);
 	operand_write(id_dest, &t0);
-	// unnecessary to update CF and OF in NEMU
 	t1 = (int)t0 < 0;
 	rtl_set_SF(&t1);
 	t1 = t0 == 0;
 	rtl_set_ZF(&t1);
-#ifdef DIFF_TEST
-	//diff_test_skip_qemu();
-#endif
 	print_asm_template2(sar);
 }
 
 make_EHelper(shl) {
+	// unnecessary to update CF and OF in NEMU
 	rtl_shl(&t0, &id_dest->val, &id_src->val);
 	operand_write(id_dest, &t0);
-	// unnecessary to update CF and OF in NEMU
 	t1 = (int)t0 < 0;
 	rtl_set_SF(&t1);
 	t1 = t0 == 0;
 	rtl_set_ZF(&t1);
-#ifdef DIFF_TEST
-	//diff_test_skip_qemu();
-#endif
 	print_asm_template2(shl);
 }
 
 make_EHelper(shr) {
+	// unnecessary to update CF and OF in NEMU
 	rtl_shr(&t0, &id_dest->val, &id_src->val);
 	operand_write(id_dest, &t0);
-	// unnecessary to update CF and OF in NEMU
 	t1 = (int)t0 < 0;
 	rtl_set_SF(&t1);
 	t1 = t0 == 0;
 	rtl_set_ZF(&t1);
-#ifdef DIFF_TEST
-	//diff_test_skip_qemu();
-#endif
 	print_asm_template2(shr);
 }
 
 make_EHelper(setcc) {
-	uint8_t subcode = decoding.opcode & 0xf;
-	rtl_setcc(&t2, subcode);
+	uint32_t cc = decoding.opcode & 0xf;
+
+	rtl_setcc(&t2, cc);
 	operand_write(id_dest, &t2);
 
-	print_asm("set%s %s", get_cc_name(subcode), id_dest->str);
+	print_asm("set%s %s", get_cc_name(cc), id_dest->str);
 }
 
 make_EHelper(not) {
-	rtl_not(&id_dest->val);
+
+	rtl_not(&id_dest->val, &id_dest->val);
 	operand_write(id_dest, &id_dest->val);
 	print_asm_template1(not);
 }

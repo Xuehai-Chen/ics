@@ -2,6 +2,7 @@
 
 nemu=build/nemu
 
+echo "compiling NEMU..."
 if make &> /dev/null; then
   echo "NEMU compile OK"
 else

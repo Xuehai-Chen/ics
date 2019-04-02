@@ -5,7 +5,6 @@
  */
 #include <sys/types.h>
 #include <regex.h>
-
 enum {
 	TK_NOTYPE = 256, TK_EQ = 257, TK_NEQ = 258,
 	TK_DEC = 259, TK_HEX = 260, TK_REG = 261,
@@ -21,8 +20,8 @@ static struct rule {
 } rules[] = {
 
 	/* TODO: Add more rules.
-	 * Pay attention to the precedence level of different rules.
-	 */
+	 * 	 * Pay attention to the precedence level of different rules.
+	 * 	 	 */
 
 	{" +", TK_NOTYPE},    // spaces
 	{"\\+", '+'},         // plus
@@ -46,8 +45,8 @@ static struct rule {
 static regex_t re[NR_REGEX];
 
 /* Rules are used for many times.
- * Therefore we compile them only once before any usage.
- */
+ *  * Therefore we compile them only once before any usage.
+ *   */
 void init_regex() {
 	int i;
 	char error_msg[128];
@@ -89,9 +88,9 @@ static bool make_token(char *e) {
 				position += substr_len;
 
 				/* TODO: Now a new token is recognized with rules[i]. Add codes
-				 * to record the token in the array `tokens'. For certain types
-				 * of tokens, some extra actions should be performed.
-				 */
+				 * 				 * to record the token in the array `tokens'. For certain types
+				 * 				 				 * of tokens, some extra actions should be performed.
+				 * 				 				 				 */
 
 				switch (rules[i].token_type) {
 					case TK_NOTYPE:
@@ -230,8 +229,8 @@ uint32_t eval(int p, int q, bool *success){
 			case TK_DEREF: return vaddr_read(val2, 4);
 			case TK_NEG: return -val2;
 			default:
-						 *success = false;
-						 return 0;
+				     *success = false;
+				     return 0;
 		}
 	}
 }

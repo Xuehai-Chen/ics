@@ -1,22 +1,33 @@
 #include <am.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <amdev.h>
 
-static struct timeval boot_time;
+void timer_init();
+void video_init();
+void input_init();
 
-unsigned long _uptime() {
-  struct timeval now;
-  gettimeofday(&now, NULL);
-  long seconds = now.tv_sec - boot_time.tv_sec;
-  long useconds = now.tv_usec - boot_time.tv_usec;
-  return seconds * 1000 + (useconds + 500) / 1000;
+size_t input_read(uintptr_t reg, void *buf, size_t size);
+size_t timer_read(uintptr_t reg, void *buf, size_t size);
+size_t video_read(uintptr_t reg, void *buf, size_t size);
+
+size_t video_write(uintptr_t reg, void *buf, size_t size);
+
+static _Device devices[] = {
+  {_DEV_INPUT,   "SDL Keyboard", input_read, NULL},
+  {_DEV_TIMER,   "Native Timer", timer_read, NULL},
+  {_DEV_VIDEO,   "SDL Graphics", video_read, video_write},
+};
+
+int _ioe_init() {
+  timer_init();
+  video_init();
+  input_init();
+  return 0;
 }
 
-void gui_init();
-
-void _ioe_init() {
-  gui_init();
-  gettimeofday(&boot_time, NULL);
+_Device *_device(int n) {
+  if (n >= 1 && n <= sizeof(devices) / sizeof(devices[0])) {
+    return &devices[n - 1];
+  } else {
+    return NULL;
+  }
 }
-
-

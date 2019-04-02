@@ -3,6 +3,7 @@
 #include <memory.h>
 #include <ppu.h>
 #include <klib.h>
+#include <amdev.h>
 
 //#define NOGUI
 
@@ -74,9 +75,13 @@ int fce_load_rom(char *rom)
 
 void fce_init()
 {
+	log("call cpu_init\n");
     cpu_init();
+	log("call ppu_init\n");
     ppu_init();
+	log("call ppu_set_mirroring\n");
     ppu_set_mirroring(fce_rom_header->rom_type & 1);
+	log("call cpu_reset\n");
     cpu_reset();
 }
 
@@ -86,9 +91,9 @@ void wait_for_frame() {
 #ifdef NOGUI
   return;
 #endif
-  unsigned long cur = _uptime();
+  unsigned long cur = uptime();
   while (cur - gtime < 1000 / FPS) {
-    cur = _uptime();
+    cur = uptime();
   }
   gtime = cur;
 }
@@ -96,18 +101,21 @@ void wait_for_frame() {
 void fce_run()
 {
     key_state[0] = 1;
-    gtime = _uptime();
+    gtime = uptime();
     while(1)
     {
+		log("gtime:%d\n", gtime);
         wait_for_frame();
         int scanlines = 262;
         while (scanlines-- > 0)
         {
+			log("ppu_run:1, scanlines:%d\n", scanlines);
             ppu_run(1);
             cpu_run(1364 / 12); // 1 scanline
         }
 
-        int key = _read_key();
+        int key = read_key();
+		log("readkey:%d\n", key);
         if (key != _KEY_NONE) {
           int down = (key & 0x8000) != 0;
           int code = key & ~0x8000;
@@ -139,14 +147,21 @@ static uint32_t row[1024];
 
 void fce_update_screen()
 {
-  int idx = ppu_ram_read(0x3F00);
+  /*
+  static int count = 0;
+  count ++;
+  if(count > 30) _halt(0);
+  */
 
-  int w = _screen.width;
-  int h = _screen.height;
+  int idx = ppu_ram_read(0x3F00);
+  log("PPU_RAM[0]:%d, idx:%d\n", PPU_RAM[0x3f00], idx);
+
+  int w = screen_width();
+  int h = screen_height();
 
   frame_cnt ++;
 #ifdef NOGUI
-  if (frame_cnt % 1000 == 0) printf("Frame %d (%d FPS)\n", frame_cnt, frame_cnt * 1000 / _uptime());
+  if (frame_cnt % 1000 == 0) printf("Frame %d (%d FPS)\n", frame_cnt, frame_cnt * 1000 / uptime());
   return;
 #endif
   if (frame_cnt % 3 != 0) return;
@@ -157,18 +172,23 @@ void fce_update_screen()
     for (int x = pad; x < w - pad; x ++) {
       row[x] = palette[canvas[y1][xmap[x] + 0xff]];
     }
-    _draw_rect(row + pad, pad, y, w - 2 * pad, 1);
+	// log("x:%d,y:%d,w:%d,h:%d\n", pad, y, w - 2 * pad, 1);
+	// log("xmap[]:%d, canvas[y1][]:%d\n", xmap[10], canvas[5][5]);
+	// log("(row + pad)[-]: %x, %x\n", row[pad + 15], row[pad + 50]);
+    draw_rect(row + pad, pad, y, w - 2 * pad, 1);
   }
 
-  _draw_sync();
+  draw_sync();
 
   assert(sizeof(byte) == 1);
+  log("memset to %d, canvas[5][5]:%d\n", idx, canvas[5][5]);
   memset(canvas, idx, sizeof(canvas));
+  log("memset after:%d\n", canvas[5][5]);
 }
 
 void xmap_init() {
-  int w = _screen.width;
-  int h = _screen.height;
+  int w = screen_width();
+  int h = screen_height();
   int pad = (w - h) / 2;
   for (int x = pad; x < w - pad; x ++) {
     xmap[x] = (x - pad) * W / h;

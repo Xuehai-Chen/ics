@@ -13,9 +13,19 @@ int nemu_state = NEMU_STOP;
 
 void exec_wrapper(bool);
 
+static uint64_t g_nr_guest_instr = 0;
+
+void nr_guest_instr_add(uint32_t n) {
+  g_nr_guest_instr += n;
+}
+
+void monitor_statistic() {
+  Log("total guest instructions = %ld", g_nr_guest_instr);
+}
+
 /* Simulate how the CPU works. */
 void cpu_exec(uint64_t n) {
-  if (nemu_state == NEMU_END) {
+  if (nemu_state == NEMU_END || nemu_state == NEMU_ABORT) {
     printf("Program execution has ended. To restart the program, exit NEMU and run again.\n");
     return;
   }
@@ -27,11 +37,11 @@ void cpu_exec(uint64_t n) {
     /* Execute one instruction, including instruction fetch,
      * instruction decode, and the actual execution. */
     exec_wrapper(print_flag);
+    nr_guest_instr_add(1);
 
 #ifdef DEBUG
     /* TODO: check watchpoints here. */
 	if(check_watchpoints()) nemu_state = NEMU_STOP;
-
 #endif
 
 #ifdef HAS_IOE
@@ -39,7 +49,22 @@ void cpu_exec(uint64_t n) {
     device_update();
 #endif
 
-    if (nemu_state != NEMU_RUNNING) { return; }
+    if (nemu_state != NEMU_RUNNING) {
+      if (nemu_state == NEMU_END) {
+        printflog("\33[1;31mnemu: HIT %s TRAP\33[0m at eip = 0x%08x\n\n",
+            (cpu.eax == 0 ? "GOOD" : "BAD"), cpu.eip - 1);
+        monitor_statistic();
+        return;
+      }
+      else if (nemu_state == NEMU_ABORT) {
+        printflog("\33[1;31mnemu: ABORT\33[0m at eip = 0x%08x\n\n", cpu.eip);
+        return;
+      }
+      else if (nemu_state == NEMU_STOP) {
+        printflog("\33[1;31mnemu: STOP\33[0m at eip = 0x%08x\n\n", cpu.eip);
+        return;
+      }
+    }
   }
 
   if (nemu_state == NEMU_RUNNING) { nemu_state = NEMU_STOP; }

@@ -12,6 +12,9 @@ typedef struct {
 #define EXW(ex, w)         {NULL, concat(exec_, ex), w}
 #define EX(ex)             EXW(ex, 0)
 #define EMPTY              EX(inv)
+#define IRQ_TIMER 0x32
+
+void raise_intr(uint8_t, vaddr_t);
 
 static inline void set_width(int width) {
 	if (width == 0) {
@@ -41,7 +44,7 @@ static make_EHelper(name) { \
 
 /* 0x80, 0x81, 0x83 */
 make_group(gp1,
-		EX(add), EX(add), EMPTY, EX(add),
+		EX(add), EX(or), EMPTY, EX(sbb),
 		EX(and), EX(sub), EX(xor), EX(cmp))
 
 	/* 0xc0, 0xc1, 0xd0, 0xd1, 0xd2, 0xd3 */
@@ -78,14 +81,14 @@ make_group(gp7,
 		/* 0x0c */	IDEXW(I2a,or,1), IDEX(I2a,or), EMPTY, EX(2byte_esc),
 		/* 0x10 */	IDEXW(G2E,adc,1), EMPTY, IDEXW(E2G,adc,1), IDEX(E2G,adc),
 		/* 0x14 */	EMPTY, EMPTY, EMPTY, EMPTY,
-		/* 0x18 */	EMPTY, IDEX(G2E,sbb), EMPTY, IDEX(E2G,sbb),
+		/* 0x18 */	EMPTY, IDEX(G2E,sbb), IDEXW(E2G,sbb,1), IDEX(E2G,sbb),
 		/* 0x1c */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0x20 */	IDEXW(G2E,and,1), IDEX(G2E,and), IDEXW(E2G,and,1), IDEX(E2G,and),
 		/* 0x24 */	EMPTY, IDEX(I2a,and), EMPTY, EMPTY,
 		/* 0x28 */	EMPTY, IDEX(G2E,sub), EMPTY, IDEX(E2G,sub),
 		/* 0x2c */	EMPTY, IDEX(I2a,sub), EMPTY, EMPTY,
-		/* 0x30 */	EMPTY, IDEX(G2E,xor), EMPTY, EMPTY,
-		/* 0x34 */	EMPTY, EMPTY, EMPTY, EMPTY,
+		/* 0x30 */	EMPTY, IDEX(G2E,xor), EMPTY, IDEX(E2G,xor),
+		/* 0x34 */	EMPTY, EMPTY, EX(nop), EMPTY,
 		/* 0x38 */	IDEXW(G2E,cmp,1), IDEX(G2E,cmp), IDEXW(E2G,cmp,1), IDEX(E2G,cmp),
 		/* 0x3c */	IDEXW(I2a,cmp,1), IDEX(I2a,cmp), EMPTY, EMPTY,
 		/* 0x40 */	IDEX(r,inc), IDEX(r,inc), IDEX(r,inc), IDEX(r,inc),
@@ -105,7 +108,7 @@ make_group(gp7,
 		/* 0x78 */	IDEXW(J,jcc,1), IDEXW(J,jcc,1), IDEXW(J,jcc,1), IDEXW(J,jcc,1),
 		/* 0x7c */	IDEXW(J,jcc,1), IDEXW(J,jcc,1), IDEXW(J,jcc,1), IDEXW(J,jcc,1),
 		/* 0x80 */	IDEXW(I2E, gp1, 1), IDEX(I2E, gp1), EMPTY, IDEX(SI2E, gp1),
-		/* 0x84 */	IDEXW(G2E,test,1), IDEX(E2G,test), EMPTY, EMPTY,
+		/* 0x84 */	IDEXW(G2E,test,1), IDEX(G2E,test), EMPTY, EMPTY,
 		/* 0x88 */	IDEXW(mov_G2E, mov, 1), IDEX(mov_G2E, mov), IDEXW(mov_E2G, mov, 1), IDEX(mov_E2G, mov),
 		/* 0x8c */	EMPTY, IDEX(lea_M2G,lea), EMPTY, EMPTY,
 		/* 0x90 */	EX(nop), EMPTY, EMPTY, EMPTY,
@@ -114,7 +117,7 @@ make_group(gp7,
 		/* 0x9c */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0xa0 */	IDEXW(O2a, mov, 1), IDEX(O2a, mov), IDEXW(a2O, mov, 1), IDEX(a2O, mov),
 		/* 0xa4 */	EMPTY, EMPTY, EMPTY, EMPTY,
-		/* 0xa8 */	IDEXW(I2a,test,1), IDEX(I2a,test), EMPTY, EMPTY,
+		/* 0xa8 */	IDEXW(I2a,test,1), IDEX(I2a,test), EMPTY, EX(stos),
 		/* 0xac */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0xb0 */	IDEXW(mov_I2r, mov, 1), IDEXW(mov_I2r, mov, 1), IDEXW(mov_I2r, mov, 1), IDEXW(mov_I2r, mov, 1),
 		/* 0xb4 */	IDEXW(mov_I2r, mov, 1), IDEXW(mov_I2r, mov, 1), IDEXW(mov_I2r, mov, 1), IDEXW(mov_I2r, mov, 1),
@@ -130,7 +133,7 @@ make_group(gp7,
 		/* 0xdc */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0xe0 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0xe4 */	IDEXW(in_I2a,in,1), IDEX(in_I2a,in), IDEXW(out_a2I,out,1), IDEX(out_a2I,out),
-		/* 0xe8 */	IDEXW(J,call,4), IDEXW(J,jmp,4), EMPTY, IDEXW(J,jmp,1),
+		/* 0xe8 */	IDEX(J,call), IDEX(J,jmp), EMPTY, IDEXW(J,jmp,1),
 		/* 0xec */	IDEXW(in_dx2a,in,1), IDEX(in_dx2a,in), IDEXW(out_a2dx,out,1), IDEX(out_a2dx,out),
 		/* 0xf0 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0xf4 */	EMPTY, EMPTY, IDEXW(E, gp3, 1), IDEX(E, gp3),
@@ -147,7 +150,7 @@ make_group(gp7,
 		/* 0x14 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0x18 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0x1c */	EMPTY, EMPTY, EMPTY, EMPTY,
-		/* 0x20 */	IDEX(CR2G,mov), EMPTY, IDEX(G2CR,mov), EMPTY,
+		/* 0x20 */	IDEX(mov_E2G,mov_cr2r), EMPTY, IDEX(mov_E2G,mov_r2cr), EMPTY,
 		/* 0x24 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0x28 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0x2c */	EMPTY, EMPTY, EMPTY, EMPTY,
@@ -178,7 +181,7 @@ make_group(gp7,
 		/* 0x90 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0x94 */	IDEXW(E,setcc,1), IDEXW(E,setcc,1), EMPTY, EMPTY,
 		/* 0x98 */	EMPTY, EMPTY, EMPTY, EMPTY,
-		/* 0x9c */	EMPTY, EMPTY, EMPTY, IDEX(E,setcc),
+		/* 0x9c */	EMPTY, EMPTY, IDEXW(E,setcc,1), IDEXW(E,setcc,1),
 		/* 0xa0 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0xa4 */	EMPTY, EMPTY, EMPTY, EMPTY,
 		/* 0xa8 */	EMPTY, EMPTY, EMPTY, EMPTY,
@@ -220,21 +223,23 @@ make_EHelper(real) {
 }
 
 static inline void update_eip(void) {
-	cpu.eip = (decoding.is_jmp ? (decoding.is_jmp = 0, decoding.jmp_eip) : decoding.seq_eip);
+	if (decoding.is_jmp) { decoding.is_jmp = 0; }
+	else { cpu.eip = decoding.seq_eip; }
 }
 
 void exec_wrapper(bool print_flag) {
+	vaddr_t ori_eip = cpu.eip;
+
 #ifdef DEBUG
 	decoding.p = decoding.asm_buf;
-	decoding.p += sprintf(decoding.p, "%8x:   ", cpu.eip);
+	decoding.p += sprintf(decoding.p, "%8x:   ", ori_eip);
 #endif
 
-	decoding.seq_eip = cpu.eip;
-	//Log("executing eip: 0x%-10x", cpu.eip);
+	decoding.seq_eip = ori_eip;
 	exec_real(&decoding.seq_eip);
 
 #ifdef DEBUG
-	int instr_len = decoding.seq_eip - cpu.eip;
+	int instr_len = decoding.seq_eip - ori_eip;
 	sprintf(decoding.p, "%*.s", 50 - (12 + 3 * instr_len), "");
 	strcat(decoding.asm_buf, decoding.assembly);
 	Log_write("%s\n", decoding.asm_buf);
@@ -243,14 +248,17 @@ void exec_wrapper(bool print_flag) {
 	}
 #endif
 
-#ifdef DIFF_TEST
-	uint32_t eip = cpu.eip;
-#endif
-
 	update_eip();
 
-#ifdef DIFF_TEST
+#if defined(DIFF_TEST)
 	void difftest_step(uint32_t);
-	difftest_step(eip);
+	difftest_step(ori_eip);
 #endif
+
+	if (cpu.INTR & cpu.eflags.IF) {
+		//Log("timer interrupts is triggered");
+		cpu.INTR = false;
+		raise_intr(IRQ_TIMER, cpu.eip);
+		update_eip();
+	}
 }

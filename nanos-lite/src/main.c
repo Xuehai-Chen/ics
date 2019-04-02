@@ -1,19 +1,14 @@
 #include "common.h"
 
-/* Uncomment these macros to enable corresponding functionality. */
-#define HAS_ASYE
-#define HAS_PTE
-
 void init_mm(void);
 void init_ramdisk(void);
 void init_device(void);
 void init_irq(void);
 void init_fs(void);
-uint32_t loader(_Protect *, const char *);
-void load_prog(const char*);
+void init_proc(void);
 
 int main() {
-#ifdef HAS_PTE
+#ifdef HAS_VME
   init_mm();
 #endif
 
@@ -24,16 +19,17 @@ int main() {
 
   init_device();
 
-#ifdef HAS_ASYE
-  Log("Initializing interrupt/exception handler...");
+#ifdef HAS_CTE
   init_irq();
 #endif
 
   init_fs();
 
-  //uint32_t entry = loader(NULL, "/bin/dummy");
-  //((void (*)(void))entry)();
-  load_prog("/bin/pal");
+  init_proc();
+
+#ifdef HAS_CTE
+  _yield();
+#endif
 
   panic("Should not reach here");
 }

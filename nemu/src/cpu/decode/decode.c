@@ -3,8 +3,11 @@
 
 /* shared by all helper functions */
 DecodeInfo decoding;
-rtlreg_t t0, t1, t2, t3;
-const rtlreg_t tzero = 0;
+rtlreg_t t0, t1, t2, t3, at;
+
+void decoding_set_jmp(bool is_jmp) {
+	decoding.is_jmp = is_jmp;
+}
 
 #define make_DopHelper(name) void concat(decode_op_, name) (vaddr_t *eip, Operand *op, bool load_val)
 
@@ -38,8 +41,8 @@ static inline make_DopHelper(SI) {
 	 *
 	 op->simm = ???
 	 */
-	t3 = instr_fetch(eip, op->width);
-	rtl_sext(&op->imm, &t3, op->width);
+		t3 = instr_fetch(eip, op->width);
+			rtl_sext(&op->imm, &t3, op->width);
 
 	rtl_li(&op->val, op->simm);
 
@@ -94,34 +97,10 @@ static inline void decode_op_rm(vaddr_t *eip, Operand *rm, bool load_rm_val, Ope
 	read_ModR_M(eip, rm, load_rm_val, reg, load_reg_val);
 }
 
-static inline void decode_op_rm_ctrl(vaddr_t *eip, Operand *r1, bool load_r1_val, Operand *r2, bool load_r2_val){
-	ModR_M m;
-	m.val = instr_fetch(eip, 1);
-	r1->type = OP_TYPE_CTRL_REG;
-	r1->reg = m.reg;
-	if(load_r1_val){
-	   switch(m.reg){
-		   case 0:
-			   rtl_get_cr0(&r1->val);
-			   break;
-		   case 3:
-			   rtl_get_cr3(&r1->val);
-			   break;
-		   default:
-			   assert(0);
-	   }
-	}
-	r2->type = OP_TYPE_REG;
-	r2->reg = m.R_M;
-	if(load_r2_val){
-		rtl_lr(&r2->val, r2->reg, r2->width);
-	}
-}
-
 /* Ob, Ov */
 static inline make_DopHelper(O) {
 	op->type = OP_TYPE_MEM;
-	op->addr = instr_fetch(eip, 4);
+	rtl_li(&op->addr, instr_fetch(eip, 4));
 	if (load_val) {
 		rtl_lm(&op->val, &op->addr, op->width);
 	}
@@ -212,6 +191,10 @@ make_DHelper(E) {
 	decode_op_rm(eip, id_dest, true, NULL, false);
 }
 
+make_DHelper(setcc_E) {
+	decode_op_rm(eip, id_dest, false, NULL, false);
+}
+
 make_DHelper(gp7_E) {
 	decode_op_rm(eip, id_dest, false, NULL, false);
 }
@@ -255,7 +238,7 @@ make_DHelper(gp2_cl2E) {
 	decode_op_rm(eip, id_dest, true, NULL, false);
 	id_src->type = OP_TYPE_REG;
 	id_src->reg = R_CL;
-	rtl_lr_b(&id_src->val, R_CL);
+	rtl_lr(&id_src->val, R_CL, 1);
 #ifdef DEBUG
 	sprintf(id_src->str, "%%cl");
 #endif
@@ -273,6 +256,18 @@ make_DHelper(Ib_G2E) {
 	decode_op_rm(eip, id_dest, true, id_src2, true);
 	id_src->width = 1;
 	decode_op_I(eip, id_src, true);
+}
+
+/* Ev <- GvCL
+ * use for shld/shrd */
+make_DHelper(cl_G2E) {
+	decode_op_rm(eip, id_dest, true, id_src2, true);
+	id_src->type = OP_TYPE_REG;
+	id_src->reg = R_CL;
+	rtl_lr(&id_src->val, R_CL, 1);
+#ifdef DEBUG
+	sprintf(id_src->str, "%%cl");
+#endif
 }
 
 make_DHelper(O2a) {
@@ -304,7 +299,7 @@ make_DHelper(in_I2a) {
 make_DHelper(in_dx2a) {
 	id_src->type = OP_TYPE_REG;
 	id_src->reg = R_DX;
-	rtl_lr_w(&id_src->val, R_DX);
+	rtl_lr(&id_src->val, R_DX, 2);
 #ifdef DEBUG
 	sprintf(id_src->str, "(%%dx)");
 #endif
@@ -323,36 +318,14 @@ make_DHelper(out_a2dx) {
 
 	id_dest->type = OP_TYPE_REG;
 	id_dest->reg = R_DX;
-	rtl_lr_w(&id_dest->val, R_DX);
+	rtl_lr(&id_dest->val, R_DX, 2);
 #ifdef DEBUG
 	sprintf(id_dest->str, "(%%dx)");
 #endif
 }
 
-make_DHelper(CR2G) {
-	decode_op_rm_ctrl(eip, id_src, true, id_dest, false);
-}
-
-make_DHelper(G2CR) {
-	decode_op_rm_ctrl(eip, id_dest, true, id_src, false);
-}
-
-
 void operand_write(Operand *op, rtlreg_t* src) {
-	if (op->type == OP_TYPE_REG) { rtl_sr(op->reg, op->width, src); }
-	else if (op->type == OP_TYPE_MEM) { rtl_sm(&op->addr, op->width, src); }
-	else if (op->type == OP_TYPE_CTRL_REG) {
-		//Log("writing ctrl reg:%d, val:0x%-10x\t\t", op->reg, *src);
-		switch(op->reg){
-			case 0:
-				rtl_set_cr0(*src);
-				break;
-			case 3:
-				rtl_set_cr3(*src);
-				break;
-			default:
-				assert(0);
-		}
-	}
+	if (op->type == OP_TYPE_REG) { rtl_sr(op->reg, src, op->width); }
+	else if (op->type == OP_TYPE_MEM) { rtl_sm(&op->addr, src, op->width); }
 	else { assert(0); }
 }

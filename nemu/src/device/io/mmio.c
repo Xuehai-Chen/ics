@@ -2,7 +2,7 @@
 #include "device/mmio.h"
 
 #define MMIO_SPACE_MAX (512 * 1024)
-#define NR_MAP 8
+#define NR_MAP 2
 
 static uint8_t mmio_space_pool[MMIO_SPACE_MAX];
 static uint32_t mmio_space_free_index = 0;
@@ -48,7 +48,9 @@ uint32_t mmio_read(paddr_t addr, int len, int map_NO) {
   MMIO_t *map = &maps[map_NO];
   uint32_t data = *(uint32_t *)(map->mmio_space + (addr - map->low)) 
     & (~0u >> ((4 - len) << 3));
-  map->callback(addr, len, false);
+  if (map->callback != NULL) {
+    map->callback(addr, len, false);
+  }
   return data;
 }
 
@@ -66,5 +68,7 @@ void mmio_write(paddr_t addr, int len, uint32_t data, int map_NO) {
     case 1: p[0] = p_data[0]; break;
   }
 
-  maps[map_NO].callback(addr, len, true);
+  if (map->callback != NULL) {
+    map->callback(addr, len, true);
+  }
 }

@@ -1,38 +1,48 @@
 #include "common.h"
 #include "syscall.h"
-#include "fs.h"
+#include "proc.h"
 
-int mm_brk(uint32_t);
+int fs_open(const char*, int, int);
+ssize_t fs_read(int, void*, size_t);
+size_t fs_write(int fd, const void* buf, size_t len);
+off_t fs_lseek(int, off_t, int);
+int fs_close(int);
+void naive_uload(PCB*, const char*);
+int mm_brk(uintptr_t);
 
-_RegSet* do_syscall(_RegSet *r) {
+_Context* do_syscall(_Context *c) {
 	uintptr_t a[4];
-	a[0] = SYSCALL_ARG1(r);
+	a[0] = c->GPR1;
 
 	switch (a[0]) {
-		case SYS_none:
-			SYSCALL_ARG1(r) = 1;
-			break;
-		case SYS_exit:
-			_halt(SYSCALL_ARG2(r));
+		case SYS_yield:
+			_yield();
+			c->GPR1 = 0;
 			break;
 		case SYS_open:
-			SYSCALL_ARG1(r) = fs_open((void*)SYSCALL_ARG2(r), 0, 0);
-			break;
-		case SYS_lseek:
-			SYSCALL_ARG1(r) = fs_lseek(SYSCALL_ARG2(r), SYSCALL_ARG3(r), SYSCALL_ARG4(r));
+			c->GPR1 = fs_open((void*)c->GPR2, c->GPR3, c->GPR4);
 			break;
 		case SYS_read:
-			//Log("fd:%d, len:%d", SYSCALL_ARG2(r), SYSCALL_ARG4(r));
-			SYSCALL_ARG1(r) = fs_read(SYSCALL_ARG2(r), (void*)SYSCALL_ARG3(r), SYSCALL_ARG4(r));
+			c->GPR1 = fs_read(c->GPR2, (void*)c->GPR3, c->GPR4);
 			break;
 		case SYS_write:
-			SYSCALL_ARG1(r) = fs_write(SYSCALL_ARG2(r), (void*)SYSCALL_ARG3(r), SYSCALL_ARG4(r));
+			c->GPR1 = fs_write(c->GPR2, (void*)c->GPR3, c->GPR4);
 			break;
 		case SYS_close:
-			SYSCALL_ARG1(r) = fs_close(SYSCALL_ARG2(r));
+			c->GPR1 = fs_close(c->GPR2);
+			break;
+		case SYS_lseek:
+			c->GPR1 = fs_lseek(c->GPR2, c->GPR3, c->GPR4);
 			break;
 		case SYS_brk:
-			SYSCALL_ARG1(r) = mm_brk(SYSCALL_ARG2(r));
+			c->GPR1 = mm_brk(c->GPR2);
+			break;
+		case SYS_exit:
+			c->GPR2 = (intptr_t)&"/bin/init";
+			//_halt(0);
+		case SYS_execve:
+			//TODO should use pcb struct to execve new process
+			naive_uload(NULL, (char*)c->GPR2);
 			break;
 		default: panic("Unhandled syscall ID = %d", a[0]);
 	}
