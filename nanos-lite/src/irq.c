@@ -1,6 +1,6 @@
 #include "common.h"
 
-void do_syscall(_Context*);
+_Context* do_syscall(_Context*);
 
 _Context *schedule(_Context*);
 
@@ -12,8 +12,7 @@ static _Context* do_event(_Event e, _Context* c) {
 			_yield();
 			break;
 		case _EVENT_SYSCALL:
-			do_syscall(c);
-			break;
+			return do_syscall(c);
 		case _EVENT_YIELD:
 			//Log("event: _EVENT_YIELD");
 			cp = schedule(c);

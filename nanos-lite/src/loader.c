@@ -14,6 +14,7 @@ ssize_t fs_write(int, const void*, size_t);
 off_t fs_lseek(int, off_t, int);
 int fs_close(int);
 void* new_page(size_t);
+PCB* getNewPCB();
 
 static uintptr_t loader(PCB *pcb, const char *filename) {
 	Log("filename:%s", filename);
@@ -51,7 +52,12 @@ void context_kload(PCB *pcb, void *entry) {
 	printf("pcb->cp:%d\n", pcb->cp);
 }
 
-void context_uload(PCB *pcb, const char *filename) {
+_Context* context_uload(PCB *pcb, const char *filename) {
+	if(pcb == NULL){
+		pcb = getNewPCB();
+		pcb->nice = 10;
+		assert(pcb);
+	}
 	_protect(&pcb->as);
 	uintptr_t entry = loader(pcb, filename);
 
@@ -63,4 +69,5 @@ void context_uload(PCB *pcb, const char *filename) {
 	printf("ustack.end:%d\n",stack.end);
 	printf("ustack.start:%d\n", stack.start);
 	printf("upcb->cp:%d\n", pcb->cp);
+	return pcb->cp;
 }

@@ -8,6 +8,7 @@ size_t fs_write(int fd, const void* buf, size_t len);
 off_t fs_lseek(int, off_t, int);
 int fs_close(int);
 void naive_uload(PCB*, const char*);
+_Context* context_uload(PCB*, const char*);
 int mm_brk(uintptr_t);
 
 _Context* do_syscall(_Context *c) {
@@ -42,8 +43,9 @@ _Context* do_syscall(_Context *c) {
 			//_halt(0);
 		case SYS_execve:
 			//TODO should use pcb struct to execve new process
-			naive_uload(NULL, (char*)c->GPR2);
-			break;
+			//naive_uload(NULL, (char*)c->GPR2);
+			Log("execve program: %s", c->GPR2);
+			return context_uload(current, (char*)c->GPR2);
 		default: panic("Unhandled syscall ID = %d", a[0]);
 	}
 

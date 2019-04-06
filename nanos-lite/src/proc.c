@@ -27,7 +27,7 @@ void init_proc() {
 	//naive_uload(NULL, "/bin/init");
 	context_uload(&pcb[0], "/bin/hello");
 	pcb[0].nice = 1;
-	context_uload(&pcb[1], "/bin/pal");
+	context_uload(&pcb[1], "/bin/init");
 	pcb[1].nice = 10;
 	switch_boot_pcb();
 }
@@ -58,4 +58,13 @@ _Context* schedule(_Context *prev) {
 		}
 	}
 	return current->cp;
+}
+
+PCB* getNewPCB(){
+	for(int i = 0; i < MAX_NR_PROC; i ++){
+		if(pcb[i].nice == 0){
+			return &pcb[i];
+		}
+	}
+	return NULL;
 }
