@@ -32,9 +32,7 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
 		//Log("va: %d, pa: %d, cp_size: %d",DEFAULT_ENTRY + i * PGSIZE,  pa, cp_size);
 		fs_read(fd, pa, cp_size);
 	}
-	if(pcb->max_brk != 0){
-		pcb->max_brk = pcb->cur_brk = (uintptr_t)DEFAULT_ENTRY + count * PGSIZE;
-	}
+	pcb->max_brk = pcb->cur_brk = (uintptr_t)DEFAULT_ENTRY + count * PGSIZE;
 	return (uintptr_t)DEFAULT_ENTRY;
 }
 
