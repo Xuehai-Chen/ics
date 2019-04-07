@@ -7,7 +7,7 @@
 #include "syscall.h"
 
 extern char _end;
-static uint32_t brk;
+static void* brk;
 
 #if defined(__ISA_X86__)
 intptr_t _syscall_(int type, intptr_t a0, intptr_t a1, intptr_t a2){
@@ -40,7 +40,7 @@ int _write(int fd, void *buf, size_t count){
 
 void *_sbrk(intptr_t increment){
 	if(brk == 0) brk = &_end;
-	uint32_t old_brk = brk;
+	void* old_brk = brk;
 	int ret = _syscall_(SYS_brk, brk + increment, 0, 0);
 	if(ret == 0){
 		brk += increment;

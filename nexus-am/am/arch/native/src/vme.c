@@ -69,7 +69,7 @@ int _map(_Protect *p, void *va, void *pa, int prot) {
     // but we do this to catch unexcepted behavior from Nanos-lite
     if (pp->vpn == vpn) {
       printf("check remap: %p -> %p, but previously %p -> %p\n", va, pa, pp->vpn << PGSHIFT, pp->ppn << PGSHIFT);
-      assert(pp->ppn == ((uintptr_t)pa >> PGSHIFT));
+      //assert(pp->ppn == ((uintptr_t)pa >> PGSHIFT));
       return 0;
     }
   }

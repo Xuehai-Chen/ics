@@ -32,7 +32,9 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
 		//Log("va: %d, pa: %d, cp_size: %d",DEFAULT_ENTRY + i * PGSIZE,  pa, cp_size);
 		fs_read(fd, pa, cp_size);
 	}
-	pcb->max_brk = pcb->cur_brk = (uintptr_t)DEFAULT_ENTRY + count * PGSIZE;
+	if(pcb->max_brk != 0){
+		pcb->max_brk = pcb->cur_brk = (uintptr_t)DEFAULT_ENTRY + count * PGSIZE;
+	}
 	return (uintptr_t)DEFAULT_ENTRY;
 }
 
@@ -47,9 +49,9 @@ void context_kload(PCB *pcb, void *entry) {
 	stack.end = stack.start + sizeof(pcb->stack);
 
 	pcb->cp = _kcontext(stack, entry, NULL);
-	printf("stack.end:%d\n",stack.end);
-	printf("stack.start:%d\n", stack.start);
-	printf("pcb->cp:%d\n", pcb->cp);
+	printf("stack.end:%p\n",stack.end);
+	printf("stack.start:%p\n", stack.start);
+	printf("pcb->cp:%p\n", pcb->cp);
 }
 
 _Context* context_uload(PCB *pcb, const char *filename) {
@@ -66,8 +68,8 @@ _Context* context_uload(PCB *pcb, const char *filename) {
 	stack.end = stack.start + sizeof(pcb->stack);
 
 	pcb->cp = _ucontext(&pcb->as, stack, stack, (void *)entry, NULL);
-	printf("ustack.end:%d\n",stack.end);
-	printf("ustack.start:%d\n", stack.start);
-	printf("upcb->cp:%d\n", pcb->cp);
+	printf("ustack.end:%p\n",stack.end);
+	printf("ustack.start:%p\n", stack.start);
+	printf("upcb->cp:%p\n", pcb->cp);
 	return pcb->cp;
 }
