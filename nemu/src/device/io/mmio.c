@@ -33,6 +33,7 @@ void* add_mmio_map(paddr_t addr, int len, mmio_callback_t callback) {
 }
 
 /* bus interface */
+//TODO need to be optimized
 int is_mmio(paddr_t addr) {
   int i;
   for (i = 0; i < nr_map; i ++) {
